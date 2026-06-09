@@ -1,0 +1,98 @@
+{
+  "id": "level-introduction-04",
+  "legacyId": "level004",
+  "number": 4,
+  "category": "Introduction",
+  "categorySlug": "introduction",
+  "categoryIndex": 4,
+  "name": "Steel Lesson",
+  "gridSize": 9,
+  "objective": {
+    "type": "clearObjectiveBlocks"
+  },
+  "moveLimit": 3,
+  "stars": {
+    "three": 2,
+    "two": 3,
+    "one": 3
+  },
+  "availableColors": [
+    "blue"
+  ],
+  "allowRandomPieces": false,
+  "startingBlocks": [
+    {
+      "x": 0,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 6,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 7,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 8,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    }
+  ],
+  "pieceQueue": [
+    {
+      "shape": "1x1",
+      "color": "blue"
+    },
+    {
+      "shape": "1x1",
+      "color": "blue"
+    },
+    {
+      "shape": "2x1",
+      "color": "blue"
+    }
+  ],
+  "hint": "Clear the steel row once to break the frames, then clear it again.",
+  "globalIndex": 4,
+  "requiredLevel": "level-introduction-03"
+}

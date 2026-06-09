@@ -1,0 +1,98 @@
+{
+  "id": "level-introduction-08",
+  "legacyId": "level008",
+  "number": 8,
+  "category": "Introduction",
+  "categorySlug": "introduction",
+  "categoryIndex": 8,
+  "name": "Steel and Color",
+  "gridSize": 9,
+  "objective": {
+    "type": "clearObjectiveBlocks"
+  },
+  "moveLimit": 3,
+  "stars": {
+    "three": 2,
+    "two": 3,
+    "one": 3
+  },
+  "availableColors": [
+    "red"
+  ],
+  "allowRandomPieces": false,
+  "startingBlocks": [
+    {
+      "x": 0,
+      "y": 4,
+      "color": "red",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "color": "red",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "color": "red",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "color": "red",
+      "type": "colorLocked",
+      "objective": true
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "color": "red",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 6,
+      "y": 4,
+      "color": "red",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 7,
+      "y": 4,
+      "color": "red",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 8,
+      "y": 4,
+      "color": "red",
+      "type": "steel",
+      "objective": true
+    }
+  ],
+  "pieceQueue": [
+    {
+      "shape": "1x1",
+      "color": "red"
+    },
+    {
+      "shape": "2x1",
+      "color": "red"
+    },
+    {
+      "shape": "1x2",
+      "color": "red"
+    }
+  ],
+  "hint": "First clear breaks steel and removes the color lock. Then refill the two gaps.",
+  "globalIndex": 8,
+  "requiredLevel": "level-introduction-07"
+}

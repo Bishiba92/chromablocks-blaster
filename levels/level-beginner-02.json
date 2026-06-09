@@ -1,0 +1,30 @@
+{
+  "id": "level-beginner-02",
+  "globalIndex": 12,
+  "number": 12,
+  "category": "Beginner",
+  "categorySlug": "beginner",
+  "categoryIndex": 2,
+  "name": "Coming Soon",
+  "template": true,
+  "disabled": true,
+  "gridSize": 9,
+  "objective": {
+    "type": "clearObjectiveBlocks"
+  },
+  "moveLimit": null,
+  "stars": {
+    "three": 1,
+    "two": 2,
+    "one": 3
+  },
+  "availableColors": [
+    "red",
+    "green"
+  ],
+  "allowRandomPieces": false,
+  "startingBlocks": [],
+  "pieceQueue": [],
+  "hint": "This level template has not been designed yet.",
+  "requiredLevel": "level-beginner-01"
+}

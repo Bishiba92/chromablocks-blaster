@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Chromablock Blaster</title>
+  <link rel="icon" type="image/png" href="img/favicon.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="globalTitleBar" class="global-title-bar">
+      <img src="img/title.png" alt="Chromablock Blaster" />
+    </div>
+    <a id="globalPatreonLink" class="global-patreon-link" href="https://patreon.com/bishiba" target="_blank" rel="noopener">
+      <img src="img/patreon.png" alt="Patreon" />
+      <span>Support development on Patreon</span>
+    </a>
+    <section id="mainMenu" class="screen active">
+      
+      <h1 class="fallback-title">Chromablock Blaster</h1>
+      <div id="mainPlayerBox" class="main-player-box">
+        <div id="mainPlayerName" class="main-player-name">Guest</div>
+        <button id="mainLoginBtn" class="small-menu-btn hidden">Login</button>
+      </div>
+      <button id="playBtn">Play</button>
+      <button id="optionsBtn">Options</button>
+      <button id="helpBtn">Help</button>
+      <button id="statsBtn">Stats</button>
+      <button id="leaderboardBtn">Leaderboard</button>
+      <button id="creditsBtn">Credits</button>
+      <div class="highscore">High Score: <span id="menuHighScore">0</span></div>
+    </section>
+
+
+    <section id="modeSelectMenu" class="screen">
+      
+      <div class="menu-card mode-select-card">
+<h2>Choose Mode</h2>
+      <button id="endlessModeBtn">Endless</button>
+      <button id="adventureModeBtn">Adventure</button>
+      <button class="backMenuBtn">◀</button>
+</div>
+    </section>
+
+    <section id="levelSelectMenu" class="screen">
+      <div class="help-card level-select-card">
+        <h2>Adventure Map</h2>
+        <p>Complete levels to unlock the next challenge.</p>
+        <div id="levelList" class="level-list"></div>
+        <button class="backMenuBtn">◀</button>
+      </div>
+    </section>
+
+    <section id="optionsMenu" class="screen">
+      <div class="menu-card options-card scrollable-card">
+<h2>Options</h2>
+      <label>Ghost Preview <input id="ghostToggle" type="checkbox" /></label>
+      <label>Sound Effects <input id="soundToggle" type="checkbox" /></label>
+      <label>Music <input id="musicToggle" type="checkbox" /></label>
+      <label>
+        Cube Size
+        <select id="cubeSizeSelect">
+          <option value="44">Small</option>
+          <option value="52">Medium</option>
+          <option value="60">Large</option>
+        </select>
+      </label>
+      <button id="saveOptionsBtn">Save</button>
+      <button class="backMenuBtn">◀</button>
+</div>
+    </section>
+
+
+    <section id="helpMenu" class="screen">
+      <div class="help-card">
+        <h2>How to Play</h2>
+
+        <p><strong>Goal:</strong> place block pieces on the 9×9 board and clear full horizontal or vertical lines.</p>
+
+        <h3>Controls</h3>
+        <p>Drag a piece with the left mouse button. Drop it onto the board. The ghost preview shows where it will land.</p>
+
+        <h3>Pieces</h3>
+        <p>You get 3 pieces at a time. When all 3 have been placed, a new set of 3 appears.</p>
+
+        <h3>Scoring</h3>
+        <ul>
+          <li>Clearing a full row or column gives <strong>1 point per square</strong>.</li>
+          <li>If the entire cleared line is one color, it gives a multiplier equal to your <strong>currently available color count</strong>.</li>
+          <li>Multiple lines can clear at once.</li>
+          <li>Consecutive scoring placements build a combo. Each combo level adds <strong>+5 points</strong>.</li>
+          <li>The combo breaks after placing 2 pieces without clearing a line.</li>
+        </ul>
+
+        <h3>Colors</h3>
+        <p>The game starts with 2 colors. Every 300 points unlocks another color. Perfect-color line clears become more valuable as more colors unlock. Rare rainbow pieces can count as any color for perfect-color lines.</p>
+
+        <h3>Endless Game Over</h3>
+        <p>Endless ends when at least one remaining piece cannot fit anywhere on the board after all line clears have resolved.</p>
+
+        <h3>Adventure</h3>
+        <p>Adventure levels have pre-placed objective blocks. Clear all objective blocks to complete the level. Fewer moves earn more stars.</p>
+        <ul>
+          <li><strong>Steel frame blocks</strong> lose their metal frame the first time they are cleared. The underlying block remains.</li>
+          <li><strong>Color-locked blocks</strong> only clear when included in a perfect same-color line matching their color.</li>
+        </ul>
+
+        <button class="backMenuBtn">◀</button>
+      </div>
+    </section>
+
+
+    <section id="statsMenu" class="screen">
+      <div class="help-card stats-card">
+        <h2>Stats</h2>
+        <div class="rank-display">
+          <div class="rank-label">Lifetime Rank</div>
+          <div id="lifetimeRank" class="rank-name">Novice</div>
+        </div>
+
+        <div class="stats-grid">
+          <div><span id="statGamesPlayed">0</span><small>Games Played</small></div>
+          <div><span id="statHighScore">0</span><small>High Score</small></div>
+          <div><span id="statHighestCombo">0</span><small>Highest Combo</small></div>
+          <div><span id="statTotalLines">0</span><small>Total Lines</small></div>
+          <div><span id="statPerfectLines">0</span><small>Perfect Lines</small></div>
+          <div><span id="statTreasureTiles">0</span><small>Treasure Popped</small></div>
+          <div><span id="statRainbowPieces">0</span><small>Rainbow Pieces</small></div>
+          <div><span id="statBestTreasure">1x</span><small>Best Treasure</small></div>
+          <div><span id="statBoardClears">0</span><small>Board Clears</small></div>
+          <div><span id="statBlocksPlaced">0</span><small>Blocks Placed</small></div>
+          <div><span id="statPiecesPlaced">0</span><small>Pieces Placed</small></div>
+          <div><span id="stat3x3Placed">0</span><small>3×3 Placed</small></div>
+          <div><span id="statAchievements">0</span><small>Achievements</small></div>
+        </div>
+
+        <h3>Achievements</h3>
+        <div id="achievementList" class="achievement-list"></div>
+
+        <button class="backMenuBtn">◀</button>
+      </div>
+    </section>
+
+
+    <section id="leaderboardMenu" class="screen">
+      <div class="help-card leaderboard-card">
+        <h2>Leaderboard</h2>
+
+        <div class="leaderboard-topbar auth-topbar">
+          <div class="auth-user-box">
+            <div class="auth-label">Google Account</div>
+            <div id="authUserName" class="auth-user-name">Not signed in</div>
+            <div id="authUserNote" class="auth-user-note">Sign in to upload online leaderboard scores.</div>
+          </div>
+
+          <label class="public-name-box">
+            Public Leaderboard Name
+            <input id="publicLeaderboardNameInput" maxlength="18" placeholder="Choose public name" />
+          </label>
+
+          <button id="savePublicLeaderboardNameBtn">Save Name</button>
+          <button id="googleSignInBtn">Sign in with Google</button>
+          <button id="googleSignOutBtn" class="hidden">Sign out</button>
+          <button id="syncLeaderboardBtn">Sync</button>
+        </div>
+
+        <div id="leaderboardStatus" class="leaderboard-status">Offline leaderboard ready.</div>
+
+        <div class="leaderboard-tabs">
+          <button id="showOnlineLeaderboardBtn" class="leaderboard-tab active">Online</button>
+          <button id="showLocalLeaderboardBtn" class="leaderboard-tab">Local</button><div id="leaderboardPlayerRank" class="leaderboard-player-rank hidden"></div>
+        </div>
+
+        <ol id="leaderboardList" class="leaderboard-list"></ol>
+
+        <button class="backMenuBtn">◀</button>
+      </div>
+    </section>
+
+
+    <section id="creditsMenu" class="screen">
+      <div class="help-card credits-card">
+        <h2>Credits</h2>
+
+        <h3>Game</h3>
+        <p><strong>Chromablock Blaster</strong></p>
+        <p>Created by <strong>Henrik Lindholm</strong>.</p>
+
+        <h3>Music</h3>
+        <ul class="credits-list">
+          <li><strong>Retro Arcade Game Music</strong> — Monume</li>
+          <li><strong>Travel</strong> — leberch</li>
+          <li><strong>Retro Arcade Game Music 2</strong> — Monume</li>
+          <li><strong>Underwater Dreamscape</strong> — alex-morgan</li>
+          <li><strong>Save As</strong> — tobylane</li>
+          <li><strong>Retro Arcade Game Music</strong> — FreeMusicForVideo</li>
+          <li><strong>IDM Glitch Experiment</strong> — alex-morgan</li>
+        </ul>
+
+        <p class="credits-note">Music sourced from Pixabay. Keep your downloaded license/certificate records with your project files.</p>
+
+        <button class="backMenuBtn">◀</button>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen">
+      <header class="game-header">
+        <button id="gameNavBtn" class="game-nav-btn">Main Menu</button>
+        <img id="gameTitleLogo" class="game-title-logo" src="img/title.png" alt="Chromablock Blaster" />
+        <div class="scoreboard">
+          <div>Score: <span id="score">0</span></div>
+          <div>Combo: <span id="combo">0</span></div>
+          <div>High: <span id="highScore">0</span></div>
+          <div>Colors: <span id="colorCount">2</span></div>
+          <div id="adventureHud" class="adventure-hud hidden">
+            <div>Level: <span id="adventureLevelName">-</span></div>
+            <div>Moves: <span id="adventureMoves">0</span><span id="adventureMoveLimit"></span></div>
+            <div>Objectives: <span id="adventureObjectives">0</span></div>
+          </div>
+        </div>
+      </header>
+
+      <div class="combo-meter-wrap">
+        <div class="combo-meter">
+          <div id="comboMeterFill"></div>
+          <span id="comboMeterText">Combo Ready</span>
+          <span id="comboMultiplierText">x0</span>
+          <span id="adventureHintText" class="hidden"></span>
+        </div>
+      </div>
+
+      <main class="game-layout">
+        <div id="gridWrap">
+          <div id="grid" class="grid"></div>
+          <div id="fxLayer"></div>
+        </div>
+        <div id="pieces" class="pieces"></div>
+
+        <a class="patreon-link" href="https://www.patreon.com/bishiba" target="_blank" rel="noopener noreferrer" aria-label="Support on Patreon">
+          <img src="img/patreon.png" alt="Support on Patreon" onerror="this.style.display='none'; this.parentElement.textContent='Support on Patreon';" />
+        </a>
+      </main>
+
+      <div id="toastLayer"></div>
+      <div id="achievementToastLayer"></div>
+    
+      <div id="adventureResultOverlay" class="floating-result-overlay hidden">
+        <div class="floating-result-content">
+          <div id="adventureResultTitle" class="floating-result-title">Level Complete</div>
+          <div id="adventureResultStars" class="floating-result-stars">★★★</div>
+          <div id="adventureResultMessage" class="floating-result-message">Nice.</div>
+          <div class="floating-result-actions">
+            <button id="adventureRetryBtn">Retry</button>
+            <button id="adventureNextBtn">Next Level</button>
+            <button id="adventureMapBtn">Adventure Map</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <section id="gameOverScreen" class="screen">
+      <div class="gameover-card">
+        <div id="gameOverBurst" class="gameover-burst"></div>
+        <h2 id="gameOverTitle">Game Over</h2>
+        <div id="newHighScoreBanner" class="new-highscore hidden">NEW HIGH SCORE!</div>
+        <p class="final-score-label">Final Score</p>
+        <div class="final-score-big"><span id="finalScore">0</span></div>
+        <p>High Score: <span id="finalHighScore">0</span></p>
+        <div id="gameOverPraise" class="gameover-praise">Nice run.</div>
+
+        <div id="gameOverLeaderboardPanel" class="gameover-leaderboard-panel">
+          <div id="gameOverLeaderboardStatus">Leaderboard status unavailable.</div>
+          <button id="gameOverGoogleSignInBtn" class="hidden">Sign in with Google to upload</button>
+          <button id="gameOverViewLeaderboardBtn">View Leaderboard</button>
+        </div>
+
+        <div class="gameover-actions">
+          <button id="retryBtn">Retry</button>
+        </div>
+      </div>
+    </section>
+
+    <div id="usernameModal" class="modal hidden">
+      <div class="modal-card">
+        <h2>Welcome</h2>
+        <p>Choose a public leaderboard name. Google login verifies your identity, but this is the name shown publicly.</p>
+        <input id="firstRunUsernameInput" maxlength="18" placeholder="Local name" />
+        <button id="confirmUsernameBtn">Start</button>
+      </div>
+    </div>
+  </div>
+
+  <audio id="sndPlace" src="audio/place.wav" preload="auto"></audio>
+  <audio id="sndClear" src="audio/clear.wav" preload="auto"></audio>
+  <audio id="sndCombo" src="audio/combo.wav" preload="auto"></audio>
+  <audio id="sndBad" src="audio/bad.wav" preload="auto"></audio>
+  <audio id="sndPreview" src="audio/preview.wav" preload="auto"></audio>
+  <audio id="sndPerfect" src="audio/perfect.wav" preload="auto"></audio>
+  <audio id="sndMultiline" src="audio/multiline.wav" preload="auto"></audio>
+  <audio id="sndMassive" src="audio/massive.wav" preload="auto"></audio>
+  <audio id="sndGameOver" src="audio/gameover.wav" preload="auto"></audio>
+  <audio id="music" preload="auto"></audio>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="firebase.js"></script>
+  <script src="leaderboard.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

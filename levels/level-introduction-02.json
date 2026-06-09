@@ -1,0 +1,91 @@
+{
+  "id": "level-introduction-02",
+  "legacyId": "level002",
+  "number": 2,
+  "category": "Introduction",
+  "categorySlug": "introduction",
+  "categoryIndex": 2,
+  "name": "Two Gaps",
+  "gridSize": 9,
+  "objective": {
+    "type": "clearObjectiveBlocks"
+  },
+  "moveLimit": 4,
+  "stars": {
+    "three": 2,
+    "two": 3,
+    "one": 4
+  },
+  "availableColors": [
+    "red"
+  ],
+  "allowRandomPieces": false,
+  "startingBlocks": [
+    {
+      "x": 0,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 6,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 8,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    }
+  ],
+  "pieceQueue": [
+    {
+      "shape": "1x1",
+      "color": "red"
+    },
+    {
+      "shape": "1x1",
+      "color": "red"
+    },
+    {
+      "shape": "2x1",
+      "color": "red"
+    }
+  ],
+  "hint": "Fill both gaps with 1x1 blocks.",
+  "globalIndex": 2,
+  "requiredLevel": "level-introduction-01"
+}

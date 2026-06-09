@@ -1,0 +1,99 @@
+{
+  "id": "level-introduction-07",
+  "legacyId": "level007",
+  "number": 7,
+  "category": "Introduction",
+  "categorySlug": "introduction",
+  "categoryIndex": 7,
+  "name": "Wrong Color Trap",
+  "gridSize": 9,
+  "objective": {
+    "type": "clearObjectiveBlocks"
+  },
+  "moveLimit": 2,
+  "stars": {
+    "three": 1,
+    "two": 2,
+    "one": 2
+  },
+  "availableColors": [
+    "red",
+    "green"
+  ],
+  "allowRandomPieces": false,
+  "startingBlocks": [
+    {
+      "x": 0,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "color": "red",
+      "type": "colorLocked",
+      "objective": true
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 6,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 7,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 8,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    }
+  ],
+  "pieceQueue": [
+    {
+      "shape": "1x1",
+      "color": "green"
+    },
+    {
+      "shape": "1x1",
+      "color": "red"
+    },
+    {
+      "shape": "2x1",
+      "color": "green"
+    }
+  ],
+  "hint": "The green block clears the line, but not the red color lock. Use red.",
+  "globalIndex": 7,
+  "requiredLevel": "level-introduction-06"
+}

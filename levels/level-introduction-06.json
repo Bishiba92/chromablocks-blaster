@@ -1,0 +1,98 @@
+{
+  "id": "level-introduction-06",
+  "legacyId": "level006",
+  "number": 6,
+  "category": "Introduction",
+  "categorySlug": "introduction",
+  "categoryIndex": 6,
+  "name": "First Color Lock",
+  "gridSize": 9,
+  "objective": {
+    "type": "clearObjectiveBlocks"
+  },
+  "moveLimit": 2,
+  "stars": {
+    "three": 1,
+    "two": 2,
+    "one": 2
+  },
+  "availableColors": [
+    "red"
+  ],
+  "allowRandomPieces": false,
+  "startingBlocks": [
+    {
+      "x": 0,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "color": "red",
+      "type": "colorLocked",
+      "objective": true
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 6,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 7,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 8,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    }
+  ],
+  "pieceQueue": [
+    {
+      "shape": "1x1",
+      "color": "red"
+    },
+    {
+      "shape": "2x1",
+      "color": "red"
+    },
+    {
+      "shape": "1x2",
+      "color": "red"
+    }
+  ],
+  "hint": "A color-locked block needs a perfect matching color line.",
+  "globalIndex": 6,
+  "requiredLevel": "level-introduction-05"
+}

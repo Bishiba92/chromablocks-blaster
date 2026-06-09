@@ -1,0 +1,99 @@
+{
+  "id": "level-introduction-03",
+  "legacyId": "level003",
+  "number": 3,
+  "category": "Introduction",
+  "categorySlug": "introduction",
+  "categoryIndex": 3,
+  "name": "Move Limit",
+  "gridSize": 9,
+  "objective": {
+    "type": "clearObjectiveBlocks"
+  },
+  "moveLimit": 1,
+  "stars": {
+    "three": 1,
+    "two": 1,
+    "one": 1
+  },
+  "availableColors": [
+    "red",
+    "green"
+  ],
+  "allowRandomPieces": false,
+  "startingBlocks": [
+    {
+      "x": 0,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 6,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 7,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 8,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    }
+  ],
+  "pieceQueue": [
+    {
+      "shape": "1x1",
+      "color": "red"
+    },
+    {
+      "shape": "2x1",
+      "color": "green"
+    },
+    {
+      "shape": "1x2",
+      "color": "green"
+    }
+  ],
+  "hint": "Use the exact piece. The move limit is 1.",
+  "globalIndex": 3,
+  "requiredLevel": "level-introduction-02"
+}

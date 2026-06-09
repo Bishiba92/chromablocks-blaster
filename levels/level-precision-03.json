@@ -1,0 +1,30 @@
+{
+  "id": "level-precision-03",
+  "globalIndex": 73,
+  "number": 73,
+  "category": "Precision",
+  "categorySlug": "precision",
+  "categoryIndex": 3,
+  "name": "Coming Soon",
+  "template": true,
+  "disabled": true,
+  "gridSize": 9,
+  "objective": {
+    "type": "clearObjectiveBlocks"
+  },
+  "moveLimit": null,
+  "stars": {
+    "three": 1,
+    "two": 2,
+    "one": 3
+  },
+  "availableColors": [
+    "red",
+    "green"
+  ],
+  "allowRandomPieces": false,
+  "startingBlocks": [],
+  "pieceQueue": [],
+  "hint": "This level template has not been designed yet.",
+  "requiredLevel": "level-precision-02"
+}

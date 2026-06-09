@@ -1,0 +1,98 @@
+{
+  "id": "level-introduction-01",
+  "legacyId": "level001",
+  "number": 1,
+  "category": "Introduction",
+  "categorySlug": "introduction",
+  "categoryIndex": 1,
+  "name": "Fill the Gap",
+  "gridSize": 9,
+  "objective": {
+    "type": "clearObjectiveBlocks"
+  },
+  "moveLimit": 3,
+  "stars": {
+    "three": 1,
+    "two": 2,
+    "one": 3
+  },
+  "availableColors": [
+    "red"
+  ],
+  "allowRandomPieces": false,
+  "startingBlocks": [
+    {
+      "x": 0,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 6,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 7,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 8,
+      "y": 4,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    }
+  ],
+  "pieceQueue": [
+    {
+      "shape": "1x1",
+      "color": "red"
+    },
+    {
+      "shape": "2x1",
+      "color": "red"
+    },
+    {
+      "shape": "1x2",
+      "color": "red"
+    }
+  ],
+  "hint": "Place the 1x1 red block in the single gap.",
+  "globalIndex": 1,
+  "requiredLevel": null
+}

@@ -1,0 +1,154 @@
+{
+  "id": "level-introduction-05",
+  "legacyId": "level005",
+  "number": 5,
+  "category": "Introduction",
+  "categorySlug": "introduction",
+  "categoryIndex": 5,
+  "name": "Steel Cross",
+  "gridSize": 9,
+  "objective": {
+    "type": "clearObjectiveBlocks"
+  },
+  "moveLimit": 3,
+  "stars": {
+    "three": 2,
+    "two": 3,
+    "one": 3
+  },
+  "availableColors": [
+    "blue"
+  ],
+  "allowRandomPieces": false,
+  "startingBlocks": [
+    {
+      "x": 0,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 6,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 7,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 8,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 1,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 3,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 5,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 6,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 8,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    }
+  ],
+  "pieceQueue": [
+    {
+      "shape": "1x1",
+      "color": "blue"
+    },
+    {
+      "shape": "1x1",
+      "color": "blue"
+    },
+    {
+      "shape": "2x1",
+      "color": "blue"
+    }
+  ],
+  "hint": "The center tile completes both a row and a column.",
+  "globalIndex": 5,
+  "requiredLevel": "level-introduction-04"
+}

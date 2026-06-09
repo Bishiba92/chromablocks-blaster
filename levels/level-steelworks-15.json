@@ -1,0 +1,30 @@
+{
+  "id": "level-steelworks-15",
+  "globalIndex": 45,
+  "number": 45,
+  "category": "Steelworks",
+  "categorySlug": "steelworks",
+  "categoryIndex": 15,
+  "name": "Coming Soon",
+  "template": true,
+  "disabled": true,
+  "gridSize": 9,
+  "objective": {
+    "type": "clearObjectiveBlocks"
+  },
+  "moveLimit": null,
+  "stars": {
+    "three": 1,
+    "two": 2,
+    "one": 3
+  },
+  "availableColors": [
+    "red",
+    "green"
+  ],
+  "allowRandomPieces": false,
+  "startingBlocks": [],
+  "pieceQueue": [],
+  "hint": "This level template has not been designed yet.",
+  "requiredLevel": "level-steelworks-14"
+}

@@ -1,0 +1,155 @@
+{
+  "id": "level-introduction-09",
+  "legacyId": "level009",
+  "number": 9,
+  "category": "Introduction",
+  "categorySlug": "introduction",
+  "categoryIndex": 9,
+  "name": "Dual Objective",
+  "gridSize": 9,
+  "objective": {
+    "type": "clearObjectiveBlocks"
+  },
+  "moveLimit": 4,
+  "stars": {
+    "three": 2,
+    "two": 3,
+    "one": 4
+  },
+  "availableColors": [
+    "red",
+    "green"
+  ],
+  "allowRandomPieces": false,
+  "startingBlocks": [
+    {
+      "x": 0,
+      "y": 3,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 1,
+      "y": 3,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 2,
+      "y": 3,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 6,
+      "y": 3,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 7,
+      "y": 3,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 8,
+      "y": 3,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "color": "green",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "color": "green",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 2,
+      "y": 5,
+      "color": "green",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "color": "green",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 5,
+      "y": 5,
+      "color": "green",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 6,
+      "y": 5,
+      "color": "green",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 7,
+      "y": 5,
+      "color": "green",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 8,
+      "y": 5,
+      "color": "green",
+      "type": "normal",
+      "objective": true
+    }
+  ],
+  "pieceQueue": [
+    {
+      "shape": "1x1",
+      "color": "red"
+    },
+    {
+      "shape": "1x1",
+      "color": "green"
+    },
+    {
+      "shape": "2x1",
+      "color": "red"
+    }
+  ],
+  "hint": "Complete the red row and the green row.",
+  "globalIndex": 9,
+  "requiredLevel": "level-introduction-08"
+}

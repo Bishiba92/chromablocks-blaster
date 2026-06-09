@@ -1,0 +1,145 @@
+Firebase configured in v29
+
+Included:
+- Firebase App SDK
+- Firebase Auth SDK
+- Firebase Firestore SDK
+- Google Auth provider
+- Firestore leaderboard collection: leaderboards_global
+- Your Firebase web config is now in firebase.js
+
+Required Firebase Console setup:
+1. Authentication > Sign-in method > Google = Enabled
+2. Authentication > Settings > Authorized domains:
+   - localhost
+   - 127.0.0.1
+   - chromablock-blaster.firebaseapp.com
+   - chromablock-blaster.web.app
+   - your final domain, if any
+
+Suggested Firestore Rules:
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /leaderboards_global/{scoreId} {
+      allow read: if true;
+
+      allow create: if
+        request.auth != null &&
+
+        request.resource.data.uid == request.auth.uid &&
+
+        request.resource.data.playerName is string &&
+        request.resource.data.playerName == request.auth.token.name &&
+        request.resource.data.playerName.size() >= 1 &&
+        request.resource.data.playerName.size() <= 80 &&
+
+        request.resource.data.score is int &&
+        request.resource.data.score >= 0 &&
+        request.resource.data.score <= 1000000 &&
+
+        request.resource.data.gameVersion is string &&
+        request.resource.data.gameVersion.size() <= 20 &&
+
+        request.resource.data.stats.linesCleared is int &&
+        request.resource.data.stats.linesCleared >= 0 &&
+        request.resource.data.stats.linesCleared <= 10000 &&
+
+        request.resource.data.stats.piecesPlaced is int &&
+        request.resource.data.stats.piecesPlaced >= 0 &&
+        request.resource.data.stats.piecesPlaced <= 100000 &&
+
+        request.resource.data.createdAt == request.time;
+
+      allow update, delete: if false;
+    }
+  }
+}
+
+Important:
+- The Firebase API key in browser code is not a server password.
+- The real protection is Authentication + Firestore Security Rules.
+
+
+V32 SECURITY RULES UPDATE
+Suggested Firestore Rules for best-score-per-user leaderboard:
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /leaderboards_global/{userId} {
+      allow read: if true;
+
+      allow create: if
+        request.auth != null &&
+        userId == request.auth.uid &&
+        request.resource.data.uid == request.auth.uid &&
+
+        request.resource.data.playerName is string &&
+        request.resource.data.playerName == request.auth.token.name &&
+        request.resource.data.playerName.size() >= 1 &&
+        request.resource.data.playerName.size() <= 80 &&
+
+        request.resource.data.score is int &&
+        request.resource.data.score >= 0 &&
+        request.resource.data.score <= 1000000 &&
+
+        request.resource.data.gameVersion is string &&
+        request.resource.data.gameVersion.size() <= 20 &&
+
+        request.resource.data.stats.linesCleared is int &&
+        request.resource.data.stats.linesCleared >= 0 &&
+        request.resource.data.stats.linesCleared <= 10000 &&
+
+        request.resource.data.stats.piecesPlaced is int &&
+        request.resource.data.stats.piecesPlaced >= 0 &&
+        request.resource.data.stats.piecesPlaced <= 100000 &&
+
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.updatedAt == request.time;
+
+      allow update: if
+        request.auth != null &&
+        userId == request.auth.uid &&
+        resource.data.uid == request.auth.uid &&
+        request.resource.data.uid == request.auth.uid &&
+
+        request.resource.data.playerName is string &&
+        request.resource.data.playerName == request.auth.token.name &&
+        request.resource.data.playerName.size() >= 1 &&
+        request.resource.data.playerName.size() <= 80 &&
+
+        request.resource.data.score is int &&
+        request.resource.data.score > resource.data.score &&
+        request.resource.data.score <= 1000000 &&
+
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.updatedAt == request.time;
+
+      allow delete: if false;
+    }
+  }
+}
+
+
+V35 SECURITY RULES NOTE:
+The leaderboard now intentionally allows a chosen public username instead of forcing Google displayName.
+Use this playerName validation instead of:
+  request.resource.data.playerName == request.auth.token.name
+
+Recommended validation:
+  request.resource.data.playerName is string &&
+  request.resource.data.playerName.size() >= 1 &&
+  request.resource.data.playerName.size() <= 18
+
+The uid is still protected:
+  userId == request.auth.uid &&
+  request.resource.data.uid == request.auth.uid
+
+This means:
+- Google Auth proves the user account.
+- The public leaderboard name can be a pseudonym.
+- Emails are never stored or shown.

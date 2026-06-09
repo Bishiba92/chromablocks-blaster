@@ -1,0 +1,219 @@
+{
+  "id": "level-introduction-10",
+  "legacyId": "level010",
+  "number": 10,
+  "category": "Introduction",
+  "categorySlug": "introduction",
+  "categoryIndex": 10,
+  "name": "The Gatekeeper",
+  "gridSize": 9,
+  "objective": {
+    "type": "clearObjectiveBlocks"
+  },
+  "moveLimit": 5,
+  "stars": {
+    "three": 3,
+    "two": 4,
+    "one": 5
+  },
+  "availableColors": [
+    "red",
+    "blue"
+  ],
+  "allowRandomPieces": false,
+  "startingBlocks": [
+    {
+      "x": 0,
+      "y": 2,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 1,
+      "y": 2,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "color": "red",
+      "type": "colorLocked",
+      "objective": true
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 5,
+      "y": 2,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 6,
+      "y": 2,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 7,
+      "y": 2,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 8,
+      "y": 2,
+      "color": "red",
+      "type": "normal",
+      "objective": true
+    },
+    {
+      "x": 0,
+      "y": 6,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 1,
+      "y": 6,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 2,
+      "y": 6,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 3,
+      "y": 6,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 5,
+      "y": 6,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 6,
+      "y": 6,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 7,
+      "y": 6,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 8,
+      "y": 6,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 1,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 3,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 5,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    },
+    {
+      "x": 4,
+      "y": 8,
+      "color": "blue",
+      "type": "steel",
+      "objective": true
+    }
+  ],
+  "pieceQueue": [
+    {
+      "shape": "1x1",
+      "color": "red"
+    },
+    {
+      "shape": "1x1",
+      "color": "blue"
+    },
+    {
+      "shape": "1x1",
+      "color": "blue"
+    },
+    {
+      "shape": "2x1",
+      "color": "red"
+    },
+    {
+      "shape": "1x2",
+      "color": "blue"
+    }
+  ],
+  "hint": "Clear the red color lock, then clear the steel cross twice.",
+  "globalIndex": 10,
+  "requiredLevel": "level-introduction-09"
+}

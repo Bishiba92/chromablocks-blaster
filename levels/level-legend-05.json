@@ -1,0 +1,30 @@
+{
+  "id": "level-legend-05",
+  "globalIndex": 95,
+  "number": 95,
+  "category": "Legend",
+  "categorySlug": "legend",
+  "categoryIndex": 5,
+  "name": "Coming Soon",
+  "template": true,
+  "disabled": true,
+  "gridSize": 9,
+  "objective": {
+    "type": "clearObjectiveBlocks"
+  },
+  "moveLimit": null,
+  "stars": {
+    "three": 1,
+    "two": 2,
+    "one": 3
+  },
+  "availableColors": [
+    "red",
+    "green"
+  ],
+  "allowRandomPieces": false,
+  "startingBlocks": [],
+  "pieceQueue": [],
+  "hint": "This level template has not been designed yet.",
+  "requiredLevel": "level-legend-04"
+}
