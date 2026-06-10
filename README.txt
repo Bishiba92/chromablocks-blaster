@@ -653,3 +653,16 @@ V96 desktop spawn height fix:
 - Desktop spawn tray now explicitly matches the computed 9x9 board height.
 - Desktop max-height cap is removed and overflow is visible.
 - Mobile keeps compact spawn tray below board.
+
+V97 mobile grid fit:
+- Mobile cube size now derives from available phone width.
+- Grid element no longer stretches wider than its 9x9 tile content.
+- Grid is centered inside its container.
+- Spawn tray width matches the board width on mobile.
+
+V98 mobile touch targeting:
+- On touch/pen mobile input, the preview target and final drop action are offset upward from the finger.
+- Dragged block visuals remain lifted separately.
+- Combo item visuals are also lifted, and their preview/action point is offset upward.
+- Desktop/mouse behavior unchanged.
+- Added console debug logs showing touch offset pixels when dragging pieces/items.

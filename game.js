@@ -996,6 +996,14 @@ function beginComboItemDrag(e) {
   document.body.classList.add("drag-active");
   e.currentTarget.classList.add("combo-item-source-dragging");
 
+  if (isTouchOffsetPointer(e.pointerType)) {
+    console.debug("[Touch Offset] item drag target lift", {
+      pointerType: e.pointerType,
+      item: item.name,
+      offsetPx: getMobileTouchTargetOffsetPx(e.pointerType)
+    });
+  }
+
   moveComboItemDrag(e);
   window.addEventListener("pointermove", moveComboItemDrag, { passive: false });
   window.addEventListener("pointerup", endComboItemDrag, { once: true, passive: false });
@@ -1007,10 +1015,13 @@ function moveComboItemDrag(e) {
   e.preventDefault();
 
   const size = 58;
-  activeComboItemDrag.dragEl.style.left = `${e.clientX - size / 2}px`;
-  activeComboItemDrag.dragEl.style.top = `${e.clientY - size / 2}px`;
+  const targetPoint = getOffsetPointerCoords(e, activeComboItemDrag.pointerType);
+  const visualLift = getMobileTouchTargetOffsetPx(activeComboItemDrag.pointerType);
 
-  updateComboItemPreview(e.clientX, e.clientY);
+  activeComboItemDrag.dragEl.style.left = `${e.clientX - size / 2}px`;
+  activeComboItemDrag.dragEl.style.top = `${e.clientY - size / 2 - visualLift}px`;
+
+  updateComboItemPreview(targetPoint.x, targetPoint.y);
 }
 
 function cancelComboItemDrag(e) {
@@ -1454,6 +1465,29 @@ function beginDrag(e, piece, sourceEl) {
   window.addEventListener("pointercancel", cancelDrag, { once: true, passive: false });
 }
 
+
+function isTouchOffsetPointer(pointerType) {
+  return pointerType === "touch" || pointerType === "pen";
+}
+
+function getMobileTouchTargetOffsetPx(pointerType) {
+  if (!isTouchOffsetPointer(pointerType)) return 0;
+  if (!window.matchMedia("(max-width: 760px)").matches) return 0;
+
+  // The placed/previewed target is lifted above the finger.
+  // Values are in CSS px; scaled with cube size so it feels consistent across phones.
+  return Math.max(56, Math.min(92, getCubePx() * 1.55));
+}
+
+function getOffsetPointerCoords(e, pointerType) {
+  const offsetY = getMobileTouchTargetOffsetPx(pointerType ?? e.pointerType);
+  return {
+    x: e.clientX,
+    y: e.clientY - offsetY,
+    offsetY
+  };
+}
+
 function moveDrag(e) {
   if (!dragging || e.pointerId !== activePointerId) return;
   e.preventDefault();
@@ -1463,8 +1497,10 @@ function moveDrag(e) {
   dragging.dragEl.style.left = `${e.clientX - dragging.visualW / 2}px`;
   dragging.dragEl.style.top = `${e.clientY - dragging.visualH / 2 - dragging.touchLift}px`;
 
-  // Preview remains based on the actual pointer position.
-  updatePreview(e.clientX, e.clientY);
+  // Mobile/touch: preview and final placement are based on a lifted target point
+  // above the finger. The dragged visual remains already lifted separately.
+  const targetPoint = getOffsetPointerCoords(e, dragging.pointerType);
+  updatePreview(targetPoint.x, targetPoint.y);
 }
 
 function endDrag(e) {

@@ -5942,3 +5942,84 @@ body:has(#gameScreen.active) #globalPatreonLink {
     align-self: center !important;
   }
 }
+
+
+/* V97 mobile grid fit/centering
+   On real iPhone Safari, older mobile rules made .grid stretch to the container while
+   the 9 fixed columns stayed left-aligned. This makes the grid itself fit the tiles,
+   centers it, and increases --cube to use the available phone width. */
+
+@media (max-width: 760px) {
+  #gameScreen.active {
+    --mobile-outer-pad: 8px;
+    --mobile-board-max: min(100vw - 16px, 520px);
+    --cube: min(44px, calc((var(--mobile-board-max) - (var(--gap) * 10)) / 9));
+  }
+
+  #gameScreen.active .game-layout,
+  #gameScreen.active #gridWrap {
+    width: var(--mobile-board-max) !important;
+    max-width: var(--mobile-board-max) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  #gameScreen.active #gridWrap {
+    display: flex !important;
+    position: relative !important;
+  }
+
+  #gameScreen.active #grid.grid {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    justify-content: center !important;
+    justify-self: center !important;
+    align-self: center !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: content-box !important;
+    grid-template-columns: repeat(9, var(--cube)) !important;
+    grid-template-rows: repeat(9, var(--cube)) !important;
+  }
+
+  #gameScreen.active .cell,
+  #gameScreen.active .mini-cell {
+    width: var(--cube) !important;
+    height: var(--cube) !important;
+  }
+
+  /* Spawn tray should match the board width on mobile, but its contents remain centered. */
+  #gameScreen.active #pieces.pieces {
+    width: var(--mobile-board-max) !important;
+    max-width: var(--mobile-board-max) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+}
+
+@media (max-width: 390px) {
+  #gameScreen.active {
+    --cube: calc((100vw - 20px - (var(--gap) * 10)) / 9);
+  }
+}
+
+
+/* V98 mobile touch targeting offset */
+@media (max-width: 760px) {
+  .combo-item-dragging {
+    transform: scale(1.08) !important;
+    opacity: .94 !important;
+  }
+
+  .cell.preview-valid,
+  .cell.preview-invalid,
+  .item-preview-valid,
+  .item-preview-invalid {
+    z-index: 8 !important;
+  }
+}
