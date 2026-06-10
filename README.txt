@@ -666,3 +666,9 @@ V98 mobile touch targeting:
 - Combo item visuals are also lifted, and their preview/action point is offset upward.
 - Desktop/mouse behavior unchanged.
 - Added console debug logs showing touch offset pixels when dragging pieces/items.
+
+V99 touch offset alignment:
+- Preview/action target now uses the same vertical lift as the visible dragged piece.
+- This corrects the earlier double/incorrect offset where the preview could drift away from the held item.
+- Item drag preview/action also uses the same lift as the item visual.
+- Desktop behavior unchanged.

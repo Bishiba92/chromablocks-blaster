@@ -1000,7 +1000,8 @@ function beginComboItemDrag(e) {
     console.debug("[Touch Offset] item drag target lift", {
       pointerType: e.pointerType,
       item: item.name,
-      offsetPx: getMobileTouchTargetOffsetPx(e.pointerType)
+      offsetPx: getMobileTouchTargetOffsetPx(e.pointerType, dragging),
+      touchLift: dragging.touchLift
     });
   }
 
@@ -1015,8 +1016,11 @@ function moveComboItemDrag(e) {
   e.preventDefault();
 
   const size = 58;
-  const targetPoint = getOffsetPointerCoords(e, activeComboItemDrag.pointerType);
-  const visualLift = getMobileTouchTargetOffsetPx(activeComboItemDrag.pointerType);
+  const itemDragContext = {
+    touchLift: getMobileTouchTargetOffsetPx(activeComboItemDrag.pointerType)
+  };
+  const targetPoint = getOffsetPointerCoords(e, activeComboItemDrag.pointerType, itemDragContext);
+  const visualLift = itemDragContext.touchLift;
 
   activeComboItemDrag.dragEl.style.left = `${e.clientX - size / 2}px`;
   activeComboItemDrag.dragEl.style.top = `${e.clientY - size / 2 - visualLift}px`;
@@ -1470,17 +1474,22 @@ function isTouchOffsetPointer(pointerType) {
   return pointerType === "touch" || pointerType === "pen";
 }
 
-function getMobileTouchTargetOffsetPx(pointerType) {
+function getMobileTouchTargetOffsetPx(pointerType, dragContext = null) {
   if (!isTouchOffsetPointer(pointerType)) return 0;
   if (!window.matchMedia("(max-width: 760px)").matches) return 0;
 
-  // The placed/previewed target is lifted above the finger.
-  // Values are in CSS px; scaled with cube size so it feels consistent across phones.
-  return Math.max(56, Math.min(92, getCubePx() * 1.55));
+  // Use the same vertical lift as the visible dragged object.
+  // This makes the ghost preview/action target sit underneath the lifted item,
+  // not underneath the finger and not offset twice.
+  if (dragContext && Number.isFinite(dragContext.touchLift)) {
+    return dragContext.touchLift;
+  }
+
+  return Math.max(42, Math.min(74, getCubePx() * 1.15));
 }
 
-function getOffsetPointerCoords(e, pointerType) {
-  const offsetY = getMobileTouchTargetOffsetPx(pointerType ?? e.pointerType);
+function getOffsetPointerCoords(e, pointerType, dragContext = null) {
+  const offsetY = getMobileTouchTargetOffsetPx(pointerType ?? e.pointerType, dragContext);
   return {
     x: e.clientX,
     y: e.clientY - offsetY,
@@ -1499,7 +1508,7 @@ function moveDrag(e) {
 
   // Mobile/touch: preview and final placement are based on a lifted target point
   // above the finger. The dragged visual remains already lifted separately.
-  const targetPoint = getOffsetPointerCoords(e, dragging.pointerType);
+  const targetPoint = getOffsetPointerCoords(e, dragging.pointerType, dragging);
   updatePreview(targetPoint.x, targetPoint.y);
 }
 
