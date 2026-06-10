@@ -95,8 +95,23 @@ function getUnlockedColorCount() {
     return currentAdventureLevel.availableColors.length;
   }
 
-  // Start with 2 colors. Add 1 extra color every 300 points.
-  return STARTING_COLOR_COUNT + Math.floor(score / COLOR_UNLOCK_INTERVAL);
+  return STARTING_COLOR_COUNT + getEndlessExtraColorCount(score);
+}
+
+function getEndlessExtraColorCount(currentScore) {
+  // Endless color progression:
+  // first new color at 300, then at 1200, 2400, 4800, 9600, ...
+  if (currentScore < 300) return 0;
+
+  let extra = 1;
+  let threshold = 1200;
+
+  while (currentScore >= threshold && extra < COLORS.length - STARTING_COLOR_COUNT) {
+    extra++;
+    threshold *= 2;
+  }
+
+  return extra;
 }
 
 function getUnlockedColors() {
@@ -221,6 +236,32 @@ let adventurePieceQueueIndex = 0;
 let audioUnlocked = false;
 let cheatBuffer = '';
 let lastGameOverLocalScoreId = null;
+let scoreHistory = [];
+let scoreSourceTotals = {};
+let scoreTurnNumber = 0;
+
+const COMBO_INVENTORY_LIMIT = 7;
+
+const COMBO_ITEM_DEFS = [
+  { type: "pickaxe", minCombo: 2, weight: 52, icon: "⛏", name: "Pickaxe", desc: "Remove a single block." },
+  { type: "bomb3x3", minCombo: 2, weight: 24, icon: "💣", name: "3×3 Bomb", desc: "Remove a 3×3 area centered on the selected tile." },
+
+  { type: "reroll", minCombo: 4, weight: 18, icon: "🔁", name: "Reroll", desc: "Drop onto one available piece to replace only that piece." },
+  { type: "tnt", minCombo: 4, weight: 14, icon: "🧨", name: "TNT", desc: "Remove blocks in a radius-2 diamond." },
+  { type: "cross", minCombo: 4, weight: 14, icon: "✚", name: "Cross Blast", desc: "Remove the selected row and column." },
+  { type: "prism", minCombo: 4, weight: 14, icon: "◆", name: "Rainbow Prism", desc: "Convert blocks in a radius-2 diamond into rainbow blocks." },
+
+  { type: "rerollAll", minCombo: 6, weight: 10, icon: "🔀", name: "Reroll All", desc: "Generate a completely new set of 3 available pieces." },
+  { type: "rocket", minCombo: 6, weight: 8, icon: "🚀", name: "Rocket", desc: "Remove blocks in a radius-5 diamond." },
+  { type: "diamondPrism", minCombo: 6, weight: 8, icon: "◇", name: "Diamond Prism", desc: "Convert blocks in a radius-4 diamond into rainbow blocks." }
+];
+
+let comboInventory = [];
+let comboItemInstanceCounter = 0;
+let activeComboItemDrag = null;
+let lastComboItemGameOverWarningAt = 0;
+
+
 let lastPlacedCells = [];
 let pendingAdventureResult = null;
 let glintTimer = null;
@@ -390,7 +431,8 @@ document.getElementById("firstRunUsernameInput").addEventListener("keydown", e =
 
 document.addEventListener("pointerdown", unlockAudioOnce, { once: true });
 document.addEventListener("keydown", unlockAudioOnce, { once: true });
-window.addEventListener("resize", updateScrollIndicators);
+window.addEventListener("resize", () => { updateResponsiveLayout(); updateScrollIndicators(); });
+window.addEventListener("orientationchange", () => setTimeout(() => { syncMobileGameNavPlacement(); updateResponsiveLayout(); updateScrollIndicators(); }, 180));
 
 function unlockAudioOnce() {
   if (audioUnlocked) return;
@@ -498,7 +540,6 @@ document.getElementById("adventureMapBtn")?.addEventListener("click", () => {
   hideAdventureResultOverlay();
   openLevelSelect();
 });
-
 document.getElementById("retryBtn").addEventListener("click", () => {
   hideEndlessGameOverOverlay();
   if (currentGameMode === "adventure" && currentAdventureLevel) startAdventureLevel(currentAdventureLevel.id);
@@ -598,7 +639,12 @@ function showScreen(name) {
   screens[name].classList.add("active");
   currentScreenName = name;
   updateScreenChrome(name);
-  setTimeout(updateScrollIndicators, 80);
+  renderComboItemBar();
+  updateResponsiveLayout();
+  setTimeout(() => {
+    updateResponsiveLayout();
+    updateScrollIndicators();
+  }, 80);
   document.getElementById("menuHighScore").textContent = highScore;
   if (name === "stats") renderStatsScreen();
   if (name === "leaderboard") renderLeaderboardScreen("local");
@@ -607,8 +653,11 @@ function showScreen(name) {
 }
 
 function startEndlessGame() {
+  clearItemSaveWarningState();
+  console.info("[Combo Items] Starting Endless: item bar should be visible and reset.");
   clearAdventureResultState();
   currentGameMode = "endless";
+  lastComboItemGameOverWarningAt = 0;
   currentAdventureLevel = null;
   clearAdventureHintBar();
   adventureMoveCount = 0;
@@ -620,6 +669,8 @@ function startEndlessGame() {
   );
   pieces = [];
   score = 0;
+  resetScoreLog();
+  resetComboItems();
   comboLevel = 0;
   comboMeter = 0;
   missesSinceLine = 0;
@@ -628,6 +679,7 @@ function startEndlessGame() {
   stats.gamesPlayed++;
   runStartedAt = Date.now();
   saveStats();
+  updateResponsiveLayout();
   buildGrid();
   generatePieces();
   updateHud();
@@ -662,7 +714,7 @@ function generatePieces() {
   if (currentGameMode === "adventure") {
     if (!anyPieceCanFit()) adventureFail("No pieces fit.");
   } else if (!anyPieceCanFit()) {
-    gameOver();
+    triggerEndlessGameOverIfNoItemCanSave("No newly generated piece fits.");
   }
 }
 
@@ -765,6 +817,565 @@ function normalizeCells(cells) {
   return cells.map(([x,y]) => [x - minX, y - minY]);
 }
 
+
+function resetComboItems() {
+  comboInventory = [];
+  comboItemInstanceCounter = 0;
+  renderComboItemBar();
+}
+
+function renderComboItemBar() {
+  const bar = document.getElementById("comboItemBar");
+  if (!bar) {
+    console.warn("[Combo Items] comboItemBar element is missing from index.html.");
+    return;
+  }
+
+  const endless = currentGameMode === "endless";
+  bar.classList.toggle("hidden", !endless);
+
+  if (!endless) {
+    bar.innerHTML = "";
+    return;
+  }
+
+  const count = comboInventory.length;
+
+  bar.innerHTML = `
+    <div class="combo-inventory-count">${count}/${COMBO_INVENTORY_LIMIT}</div>
+    <div class="combo-inventory-items" style="--inventory-count: ${Math.max(1, count)};">
+      ${comboInventory.map(item => `
+        <button
+          class="combo-item-slot unlocked ${item.justDropped ? "combo-item-unlock" : ""}"
+          data-item-id="${item.instanceId}"
+          title="${escapeHtml(item.name)}: ${escapeHtml(item.desc)}"
+          aria-label="${escapeHtml(item.name)}"
+        >
+          <span class="combo-item-icon">${item.icon}</span>
+          
+        </button>
+      `).join("")}
+    </div>
+  `;
+
+  bar.querySelectorAll(".combo-item-slot[data-item-id]").forEach(slotEl => {
+    slotEl.addEventListener("pointerdown", beginComboItemDrag);
+  });
+
+  setTimeout(() => {
+    comboInventory.forEach(item => item.justDropped = false);
+    bar.querySelectorAll(".combo-item-unlock").forEach(el => el.classList.remove("combo-item-unlock"));
+  }, 900);
+
+  console.debug("[Combo Items] inventory rendered", {
+    currentGameMode,
+    inventoryCount: comboInventory.length,
+    inventoryLimit: COMBO_INVENTORY_LIMIT,
+    items: comboInventory.map(item => ({
+      id: item.instanceId,
+      type: item.type,
+      name: item.name,
+      minCombo: item.minCombo
+    }))
+  });
+}
+
+function getComboDropChance(comboLevelValue) {
+  // Drops are guaranteed only on every third combo level: x3, x6, x9, ...
+  // This keeps items valuable without flooding the inventory.
+  return shouldDropComboItemAtLevel(comboLevelValue) ? 1 : 0;
+}
+
+function shouldDropComboItemAtLevel(comboLevelValue) {
+  return comboLevelValue >= 3 && comboLevelValue % 3 === 0;
+}
+
+function rollComboItemDrop(comboLevelValue) {
+  if (currentGameMode !== "endless") return;
+  if (!shouldDropComboItemAtLevel(comboLevelValue)) {
+    console.debug("[Combo Items] No drop: drops occur every 3 combos only.", {
+      comboLevelValue,
+      nextDropAt: comboLevelValue < 3 ? 3 : comboLevelValue + (3 - (comboLevelValue % 3 || 3))
+    });
+    return;
+  }
+
+  console.groupCollapsed(`[Combo Items] GUARANTEED DROP | combo ${comboLevelValue} | every 3 combos`);
+  console.log("Inventory:", `${comboInventory.length}/${COMBO_INVENTORY_LIMIT}`);
+
+  if (comboInventory.length >= COMBO_INVENTORY_LIMIT) {
+    console.info("DROP SKIPPED: inventory full.");
+    console.groupEnd();
+    return;
+  }
+
+  const pool = COMBO_ITEM_DEFS.filter(item => item.minCombo <= comboLevelValue);
+  const weightedPool = pool.map(item => ({
+    ...item,
+    adjustedWeight: getAdjustedComboItemWeight(item, comboLevelValue)
+  }));
+
+  console.table(weightedPool.map(item => ({
+    type: item.type,
+    name: item.name,
+    minCombo: item.minCombo,
+    baseWeight: item.weight,
+    adjustedWeight: Number(item.adjustedWeight.toFixed(2))
+  })));
+  console.debug("[Combo Items] Weight note: Pickaxe is intentionally weighted higher than Bomb.");
+
+  const item = createComboItemInstance(weightedPickComboItem(weightedPool));
+  comboInventory.push(item);
+
+  console.info(`[Combo Items] DROPPED: ${item.name}`, item);
+  console.groupEnd();
+
+  showToast("ITEM DROP", item.name);
+  renderComboItemBar();
+  playSound("perfect");
+  haptic([18, 32, 18]);
+}
+
+function getAdjustedComboItemWeight(item, comboLevelValue) {
+  // Any eligible item can drop at any higher combo, including Pickaxe at x32.
+  // Higher-tier items gain relative weight as combo rises.
+  const overMinimum = Math.max(0, comboLevelValue - item.minCombo);
+
+  if (item.minCombo >= 6) return item.weight * (1 + overMinimum * 0.18);
+  if (item.minCombo >= 4) return item.weight * (1 + overMinimum * 0.08);
+  return item.weight;
+}
+
+function weightedPickComboItem(pool) {
+  const totalWeight = pool.reduce((sum, item) => sum + (item.adjustedWeight ?? item.weight), 0);
+  let roll = Math.random() * totalWeight;
+
+  for (const item of pool) {
+    roll -= (item.adjustedWeight ?? item.weight);
+    if (roll <= 0) return item;
+  }
+
+  return pool[pool.length - 1];
+}
+
+function createComboItemInstance(def) {
+  return {
+    ...def,
+    instanceId: `combo_item_${Date.now()}_${++comboItemInstanceCounter}`,
+    justDropped: true,
+    rarityLabel: ""
+  };
+}
+
+
+function beginComboItemDrag(e) {
+  const instanceId = e.currentTarget?.dataset?.itemId;
+  const item = comboInventory.find(i => i.instanceId === instanceId);
+  if (!item || currentGameMode !== "endless") return;
+  if (e.pointerType === "mouse" && e.button !== 0) return;
+  if (activePointerId !== null || activeComboItemDrag) return;
+
+  e.preventDefault();
+
+  try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
+
+  activePointerId = e.pointerId;
+
+  const dragEl = e.currentTarget.cloneNode(true);
+  dragEl.classList.add("combo-item-dragging");
+  document.body.appendChild(dragEl);
+
+  activeComboItemDrag = {
+    item,
+    sourceEl: e.currentTarget,
+    dragEl,
+    currentTarget: null,
+    pointerType: e.pointerType
+  };
+
+  document.body.classList.add("drag-active");
+  e.currentTarget.classList.add("combo-item-source-dragging");
+
+  moveComboItemDrag(e);
+  window.addEventListener("pointermove", moveComboItemDrag, { passive: false });
+  window.addEventListener("pointerup", endComboItemDrag, { once: true, passive: false });
+  window.addEventListener("pointercancel", cancelComboItemDrag, { once: true, passive: false });
+}
+
+function moveComboItemDrag(e) {
+  if (!activeComboItemDrag || e.pointerId !== activePointerId) return;
+  e.preventDefault();
+
+  const size = 58;
+  activeComboItemDrag.dragEl.style.left = `${e.clientX - size / 2}px`;
+  activeComboItemDrag.dragEl.style.top = `${e.clientY - size / 2}px`;
+
+  updateComboItemPreview(e.clientX, e.clientY);
+}
+
+function cancelComboItemDrag(e) {
+  if (!activeComboItemDrag || e.pointerId !== activePointerId) return;
+  e.preventDefault();
+  clearItemPreview();
+  cleanupComboItemDrag();
+}
+
+function endComboItemDrag(e) {
+  if (!activeComboItemDrag || e.pointerId !== activePointerId) return;
+  e.preventDefault();
+
+  const target = activeComboItemDrag.currentTarget;
+  clearItemPreview();
+
+  if (target && canUseComboItemOnTarget(activeComboItemDrag.item, target)) {
+    useComboItem(activeComboItemDrag.item, target);
+  } else {
+    playSound("bad");
+    haptic(24);
+  }
+
+  cleanupComboItemDrag();
+}
+
+function cleanupComboItemDrag() {
+  if (activeComboItemDrag?.dragEl) activeComboItemDrag.dragEl.remove();
+  activeComboItemDrag?.sourceEl?.classList.remove("combo-item-source-dragging");
+  activeComboItemDrag = null;
+  activePointerId = null;
+  document.body.classList.remove("drag-active");
+  window.removeEventListener("pointermove", moveComboItemDrag);
+  window.removeEventListener("pointercancel", cancelComboItemDrag);
+}
+
+function updateComboItemPreview(clientX, clientY) {
+  clearItemPreview();
+
+  const item = activeComboItemDrag?.item;
+  if (!item) return;
+
+  const target = getComboItemTarget(item, clientX, clientY);
+  activeComboItemDrag.currentTarget = target;
+
+  const valid = target && canUseComboItemOnTarget(item, target);
+
+  if (item.type === "reroll" || item.type === "rerollAll") {
+    if (item.type === "rerollAll") {
+      if (!target) return;
+
+      document.querySelectorAll(".piece").forEach(pieceEl => {
+        const p = pieces.find(piece => String(piece.id) === String(pieceEl.dataset.id));
+        if (p && !p.used) pieceEl.classList.add(valid ? "item-preview-piece-valid item-preview-reroll-all" : "item-preview-piece-invalid");
+      });
+      return;
+    }
+
+    if (target?.pieceEl) target.pieceEl.classList.add(valid ? "item-preview-piece-valid" : "item-preview-piece-invalid");
+    return;
+  }
+
+  if (!target) return;
+
+  const cells = getComboItemAffectedCells(item, target.x, target.y);
+  for (const [x, y] of cells) {
+    const cell = getCellEl(x, y);
+    if (cell) cell.classList.add(valid ? "item-preview-valid" : "item-preview-invalid");
+  }
+}
+
+function getComboItemTarget(item, clientX, clientY) {
+  if (item.type === "reroll" || item.type === "rerollAll") {
+    const el = document.elementFromPoint(clientX, clientY)?.closest?.(".piece");
+
+    // Reroll and Reroll All must be dropped on one of the visible available blocks.
+    // This prevents accidental use on the board or empty space.
+    if (!el || !piecesEl.contains(el)) return null;
+
+    const piece = pieces.find(p => String(p.id) === String(el.dataset.id));
+    if (!piece || piece.used) return null;
+
+    if (item.type === "rerollAll") return { allPieces: true, pieceEl: el };
+    return { piece, pieceEl: el };
+  }
+
+  const rect = gridEl.getBoundingClientRect();
+  if (clientX < rect.left || clientY < rect.top || clientX > rect.right || clientY > rect.bottom) return null;
+
+  const step = getCubePx() + getGapPx();
+  const x = Math.floor((clientX - rect.left - getGapPx()) / step);
+  const y = Math.floor((clientY - rect.top - getGapPx()) / step);
+
+  if (x < 0 || y < 0 || x >= GRID_SIZE || y >= GRID_SIZE) return null;
+  return { x, y };
+}
+
+function canUseComboItemOnTarget(item, target) {
+  if (!item || !target) return false;
+
+  if (item.type === "reroll") {
+    return Boolean(target.piece && !target.piece.used);
+  }
+
+  if (item.type === "rerollAll") {
+    return Boolean(target.allPieces) && pieces.some(piece => !piece.used);
+  }
+
+  if (item.type === "prism" || item.type === "diamondPrism") {
+    return getComboItemAffectedCells(item, target.x, target.y)
+      .some(([x, y]) => Boolean(board[y][x]));
+  }
+
+  return getComboItemAffectedCells(item, target.x, target.y)
+    .some(([x, y]) => Boolean(board[y][x]));
+}
+
+function getComboItemAffectedCells(item, cx, cy) {
+  const cells = [];
+
+  if (item.type === "pickaxe") {
+    if (inBounds(cx, cy)) cells.push([cx, cy]);
+    return cells;
+  }
+
+  if (item.type === "bomb3x3") {
+    for (let y = cy - 1; y <= cy + 1; y++) {
+      for (let x = cx - 1; x <= cx + 1; x++) {
+        if (inBounds(x, y)) cells.push([x, y]);
+      }
+    }
+    return cells;
+  }
+
+  if (item.type === "cross") {
+    for (let x = 0; x < GRID_SIZE; x++) cells.push([x, cy]);
+    for (let y = 0; y < GRID_SIZE; y++) {
+      if (y !== cy) cells.push([cx, y]);
+    }
+    return cells;
+  }
+
+  if (item.type === "tnt") return getDiamondCells(cx, cy, 2);
+  if (item.type === "rocket") return getDiamondCells(cx, cy, 5);
+  if (item.type === "prism") return getDiamondCells(cx, cy, 2);
+  if (item.type === "diamondPrism") return getDiamondCells(cx, cy, 4);
+
+  return cells;
+}
+
+function getDiamondCells(cx, cy, radius) {
+  const cells = [];
+
+  for (let y = cy - radius; y <= cy + radius; y++) {
+    for (let x = cx - radius; x <= cx + radius; x++) {
+      if (!inBounds(x, y)) continue;
+      if (Math.abs(x - cx) + Math.abs(y - cy) <= radius) cells.push([x, y]);
+    }
+  }
+
+  return cells;
+}
+
+function useComboItem(item, target) {
+  lastBoardClearSource = "item";
+  if (!item) return;
+  clearItemSaveWarningState();
+  console.info("[Combo Items] USING ITEM", {
+    id: item.instanceId,
+    name: item.name,
+    type: item.type,
+    target
+  });
+
+  if (item.type === "reroll") {
+    const idx = pieces.findIndex(p => p.id === target.piece.id);
+    if (idx >= 0) {
+      pieces[idx] = makeRandomPiece(target.piece.id);
+      renderPieces();
+      showToast("REROLL", "New block ready");
+    }
+  } else if (item.type === "rerollAll") {
+    // Full hand refresh: replace the entire spawn area with 3 brand-new available pieces.
+    pieces = Array.from({ length: 3 }, (_, id) => makeRandomPiece(id));
+    renderPieces();
+    showToast("REROLL ALL", "3 new blocks");
+  } else if (item.type === "prism" || item.type === "diamondPrism") {
+    const cells = getComboItemAffectedCells(item, target.x, target.y);
+    let converted = 0;
+    for (const [x, y] of cells) {
+      if (board[y][x] && !board[y][x].rainbow) {
+        board[y][x].rainbow = true;
+        converted++;
+      }
+    }
+    renderBoard();
+    showToast(item.name.toUpperCase(), `${converted} blocks converted`);
+  } else {
+    const cells = getComboItemAffectedCells(item, target.x, target.y);
+    const removed = removeCellsByItem(cells);
+    animateShatter(new Set(cells.map(([x,y]) => `${x},${y}`)));
+    renderBoard();
+    showToast(item.name.toUpperCase(), `${removed} blocks removed`);
+  }
+
+  consumeComboItem(item.instanceId);
+  updateItemStats(item);
+  renderComboItemBar();
+  playSound("clear");
+  haptic([18, 28, 18]);
+  afterComboItemUse();
+}
+
+function consumeComboItem(instanceId) {
+  comboInventory = comboInventory.filter(item => item.instanceId !== instanceId);
+}
+
+function removeCellsByItem(cells) {
+  let removed = 0;
+
+  for (const [x, y] of cells) {
+    const block = board[y][x];
+    if (!block) continue;
+
+    // Steel frames absorb one hit.
+    if (block.type === "steel" && block.steelFrame) {
+      block.steelFrame = false;
+      block.type = "normal";
+      removed++;
+      continue;
+    }
+
+    board[y][x] = null;
+    removed++;
+  }
+
+  return removed;
+}
+
+function updateItemStats(item) {
+  stats.comboItemsUsed = (stats.comboItemsUsed || 0) + 1;
+  const key = `${item.type}ItemsUsed`;
+  stats[key] = (stats[key] || 0) + 1;
+  saveStats();
+}
+
+
+function isBoardActuallyEmpty() {
+  if (typeof isBoardEmpty === "function") return isBoardEmpty();
+  return board.every(row => row.every(cell => !cell));
+}
+
+function afterComboItemUse() {
+  updateHud();
+  renderPieces();
+  if (anyRemainingPieceCanFit() || pieces.every(p => p.used)) clearItemSaveWarningState();
+
+  if (isBoardActuallyEmpty() && lastBoardClearSource === "placement") {
+    console.log("[Board Clear] Legitimate board clear awarded.");
+    handleBoardClear();
+  }
+
+  setTimeout(() => {
+    if (pieces.every(p => p.used)) {
+      generatePieces();
+    } else if (!anyRemainingPieceCanFit()) {
+      triggerEndlessGameOverIfNoItemCanSave("No remaining piece fits after using an item.");
+    }
+  }, 150);
+}
+
+
+function hasAnyBoardBlock() {
+  return board.some(row => row.some(Boolean));
+}
+
+function getGameSavingComboItems() {
+  if (currentGameMode !== "endless") return [];
+
+  return comboInventory.filter(item => {
+    if (!item) return false;
+
+    if (item.type === "reroll" || item.type === "rerollAll") {
+      return pieces.some(piece => !piece.used);
+    }
+
+    if (
+      item.type === "pickaxe" ||
+      item.type === "bomb3x3" ||
+      item.type === "cross" ||
+      item.type === "tnt" ||
+      item.type === "rocket"
+    ) {
+      return hasAnyBoardBlock();
+    }
+
+    // Prism items convert color but do not remove/reroll, so they should not prevent game over.
+    return false;
+  });
+}
+
+
+function setItemSaveWarningState(active) {
+  document.body.classList.toggle("item-save-warning", Boolean(active));
+  console.debug("[Combo Items] item-save-warning border state:", Boolean(active));
+}
+
+function clearItemSaveWarningState() {
+  setItemSaveWarningState(false);
+}
+
+function shouldDelayEndlessGameOverForComboItem(reason = "No pieces fit.") {
+  const savingItems = getGameSavingComboItems();
+
+  if (!savingItems.length) return false;
+
+  const now = Date.now();
+  const itemNames = savingItems.map(item => item.name).join(", ");
+
+  console.info("[Combo Items] Game over delayed because a usable item may save the run.", {
+    reason,
+    availableItems: savingItems.map(item => ({
+      id: item.instanceId,
+      name: item.name,
+      type: item.type,
+      minCombo: item.minCombo
+    })),
+    unusedPieces: pieces.filter(piece => !piece.used).map(piece => ({
+      id: piece.id,
+      name: piece.name
+    })),
+    boardBlocks: board.flat().filter(Boolean).length
+  });
+
+  setItemSaveWarningState(true);
+
+  if (now - lastComboItemGameOverWarningAt > 1600) {
+    console.info("[Combo Items] ITEM AVAILABLE:", `${itemNames} can save the run`);
+    lastComboItemGameOverWarningAt = now;
+  }
+
+  return true;
+}
+
+function triggerEndlessGameOverIfNoItemCanSave(reason = "No pieces fit.") {
+  if (shouldDelayEndlessGameOverForComboItem(reason)) return false;
+
+  clearItemSaveWarningState();
+  gameOver();
+  return true;
+}
+
+function clearItemPreview() {
+  document.querySelectorAll(".item-preview-valid, .item-preview-invalid")
+    .forEach(c => c.classList.remove("item-preview-valid", "item-preview-invalid"));
+
+  document.querySelectorAll(".item-preview-piece-valid, .item-preview-piece-invalid")
+    .forEach(c => c.classList.remove("item-preview-piece-valid", "item-preview-piece-invalid"));
+}
+
+function inBounds(x, y) {
+  return x >= 0 && y >= 0 && x < GRID_SIZE && y < GRID_SIZE;
+}
+
+
 function renderPieces() {
   piecesEl.innerHTML = "";
   for (const piece of pieces) {
@@ -795,6 +1406,8 @@ function renderPieces() {
     el.addEventListener("pointerdown", e => beginDrag(e, piece, el));
     piecesEl.appendChild(el);
   }
+
+  renderComboItemBar();
 }
 
 function beginDrag(e, piece, sourceEl) {
@@ -939,7 +1552,124 @@ function getSmartDrop(clientX, clientY, piece) {
   return { x, y };
 }
 
+
+function resetScoreLog() {
+  scoreHistory = [];
+  scoreSourceTotals = {
+    linePoints: 0,
+    comboBonus: 0,
+    multipliedBase: 0,
+    treasureBonus: 0,
+    total: 0
+  };
+  scoreTurnNumber = 0;
+}
+
+function calculateScoreBreakdown(clearInfo, comboLevelValue, treasureMultiplier, rainbowBlastMultiplier) {
+  const baseLineRaw = clearInfo.lines.length * GRID_SIZE;
+  const comboBonus = comboLevelValue * 5;
+  const colorMultiplier = clearInfo.colorMatches > 0 ? getUnlockedColorCount() : 1;
+  const multiLineMultiplier = clearInfo.lines.length > 1 ? clearInfo.lines.length : 1;
+  const additiveBase = baseLineRaw + comboBonus;
+  const multiplierProduct = colorMultiplier * multiLineMultiplier * treasureMultiplier * rainbowBlastMultiplier;
+  const total = additiveBase * multiplierProduct;
+
+  return {
+    turn: ++scoreTurnNumber,
+    timestamp: new Date().toISOString(),
+    linesCleared: clearInfo.lines.length,
+    baseLineRaw,
+    colorLinePoints: baseLineRaw,
+    colorMultiplier,
+    multiLineMultiplier,
+    comboBonus,
+    comboLevel: comboLevelValue,
+    additiveBase,
+    treasureCount: clearInfo.treasureCount,
+    treasureMultiplier,
+    rainbowBlastTier: clearInfo.rainbowBlastTier || 0,
+    rainbowBlastLabel: getRainbowBlastLabel(clearInfo.rainbowBlastTier || 0),
+    rainbowBlastMultiplier,
+    uniqueColorBlastColors: clearInfo.uniqueColorBlastColors || [],
+    multiplierProduct,
+    multipliedBase: total,
+    multipliedCombo: comboBonus * multiplierProduct,
+    total,
+    formula: `(${baseLineRaw} + ${comboBonus}) × ${colorMultiplier} × ${multiLineMultiplier} × ${treasureMultiplier} × ${rainbowBlastMultiplier} = ${total}`
+  };
+}
+
+function addScoreFromBreakdown(breakdown) {
+  const previousScore = score;
+  score += breakdown.total;
+
+  scoreSourceTotals.linePoints += breakdown.colorLinePoints;
+  scoreSourceTotals.comboBonus += breakdown.comboBonus;
+  scoreSourceTotals.multipliedBase += breakdown.multipliedBase;
+  scoreSourceTotals.treasureBonus += breakdown.treasureMultiplier > 1 ? breakdown.total - ((breakdown.additiveBase || (breakdown.colorLinePoints + breakdown.comboBonus)) * breakdown.colorMultiplier * breakdown.multiLineMultiplier * breakdown.rainbowBlastMultiplier) : 0;
+  scoreSourceTotals.total += breakdown.total;
+
+  breakdown.previousScore = previousScore;
+  breakdown.newScore = score;
+
+  scoreHistory.unshift(breakdown);
+  scoreHistory = scoreHistory.slice(0, 40);
+
+  consoleLogScoreBreakdown(breakdown);
+
+  try {
+    localStorage.setItem("chromablockBlaster.scoreDiagnostics", JSON.stringify({
+      scoreSourceTotals,
+      recentScoreHistory: scoreHistory.slice(0, 20)
+    }));
+  } catch {}
+
+  return breakdown.total;
+}
+
+function consoleLogScoreBreakdown(b) {
+  const colorNames = (b.uniqueColorBlastColors || []).map(formatColorForLog).join(", ") || "None";
+  const rainbowText = b.rainbowBlastLabel ? `${b.rainbowBlastLabel} ×${b.rainbowBlastMultiplier}` : "None";
+
+  console.groupCollapsed(`%cSCORE EVENT +${b.total} | ${b.formula}`, "color:#ffe66b;font-weight:bold;");
+  console.log("Turn:", b.turn);
+  console.log("Lines cleared:", b.linesCleared);
+  console.log("Unique color blast colors:", colorNames);
+  console.log("Rainbow reward:", rainbowText);
+  console.log("Base line raw:", `${b.linesCleared} lines × ${GRID_SIZE} = ${b.baseLineRaw}`);
+  console.log("Combo bonus:", `combo ${b.comboLevel} × 5 = ${b.comboBonus}`);
+  console.log("Additive base:", `${b.baseLineRaw} + ${b.comboBonus} = ${b.additiveBase}`);
+  console.log("Multipliers:", `Color ×${b.colorMultiplier} | Multi-line ×${b.multiLineMultiplier} | Treasure ×${b.treasureMultiplier} | Rainbow ×${b.rainbowBlastMultiplier}`);
+  console.log("Formula:", `(${b.baseLineRaw} + ${b.comboBonus}) × ${b.colorMultiplier} × ${b.multiLineMultiplier} × ${b.treasureMultiplier} × ${b.rainbowBlastMultiplier} = ${b.total}`);
+  console.log("Score:", `${b.previousScore} + ${b.total} = ${b.newScore}`);
+  console.table({
+    baseLineRaw: b.baseLineRaw,
+    comboBonus: b.comboBonus,
+    additiveBase: b.additiveBase,
+    colorMultiplier: b.colorMultiplier,
+    multiLineMultiplier: b.multiLineMultiplier,
+    treasureMultiplier: b.treasureMultiplier,
+    rainbowBlastMultiplier: b.rainbowBlastMultiplier,
+    total: b.total
+  });
+  console.groupEnd();
+}
+
+function formatColorForLog(color) {
+  if (!color) return "None";
+  const found = Object.entries(NAMED_COLORS).find(([, value]) => value === color);
+  return found ? found[0].toUpperCase() : color;
+}
+
+
+
+
+
+
 function placePiece(piece, x, y) {
+  lastBoardClearSource = "placement";
+  clearItemSaveWarningState();
+
   for (let i = 0; i < piece.cells.length; i++) {
     const [dx, dy] = piece.cells[i];
     const placedX = x + dx;
@@ -976,12 +1706,13 @@ function placePiece(piece, x, y) {
     animateShatter(clearInfo.cells);
 
     comboLevel++;
+    rollComboItemDrop(comboLevel);
     missesSinceLine = 0;
 
     const treasureMultiplier = 1 + clearInfo.treasureCount;
-    const baseActionValue = clearInfo.points + comboLevel * 5;
-    const actionValue = baseActionValue * treasureMultiplier;
-    score += actionValue;
+    const rainbowBlastMultiplier = clearInfo.rainbowBlastMultiplier || 1;
+    const scoreBreakdown = calculateScoreBreakdown(clearInfo, comboLevel, treasureMultiplier, rainbowBlastMultiplier);
+    const actionValue = addScoreFromBreakdown(scoreBreakdown);
 
     comboMeter = Math.min(COMBO_METER_MAX, comboMeter + COMBO_CLEAR_GAIN);
     stats.totalLinesCleared += clearInfo.lines.length;
@@ -1005,8 +1736,10 @@ function placePiece(piece, x, y) {
     // Otherwise a remaining piece may look impossible before the line clear opens space.
     setTimeout(() => {
       applyClearResult(clearInfo);
+      applyRainbowBlastEffect(clearInfo);
 
       renderBoard();
+      renderPieces();
 
       if (currentGameMode === "adventure") {
         if (checkAdventureComplete()) return;
@@ -1030,7 +1763,7 @@ function placePiece(piece, x, y) {
         if (pieces.every(p => p.used)) {
           generatePieces();
         } else if (!anyRemainingPieceCanFit()) {
-          gameOver();
+          triggerEndlessGameOverIfNoItemCanSave("No remaining piece fits after line clear.");
         }
       }, boardCleared ? 2500 : 0);
     }, 230);
@@ -1064,7 +1797,7 @@ function placePiece(piece, x, y) {
   if (pieces.every(p => p.used)) {
     generatePieces();
   } else if (!anyRemainingPieceCanFit()) {
-    gameOver();
+    triggerEndlessGameOverIfNoItemCanSave("No remaining piece fits after placement.");
   }
 
   updateHud();
@@ -1120,13 +1853,9 @@ function getActualClearInfo(touchedCells = null) {
     line.matchColor = realColors[0] || null;
     if (sameColor) colorMatches++;
 
-    // Perfect color lines scale with difficulty:
-    // with 2 available colors = 2x,
-    // with 5 available colors = 5x,
-    // with 9 available colors = 9x,
-    // after random colors unlock, the multiplier keeps scaling with unlocked color count.
-    const colorMultiplier = sameColor ? getUnlockedColorCount() : 1;
-    points += GRID_SIZE * colorMultiplier;
+    // Base scoring is always 9 per cleared line.
+    // Color/multiline/treasure/rainbow are applied later as external multipliers.
+    points += GRID_SIZE;
 
     for (const [x,y] of line.cells) cells.add(`${x},${y}`);
   }
@@ -1137,7 +1866,29 @@ function getActualClearInfo(touchedCells = null) {
     if (board[y][x]?.treasure) treasureCount++;
   }
 
-  return { lines, cells, points, colorMatches, treasureCount };
+  const uniqueColorBlastColors = [...new Set(
+    lines
+      .filter(line => line.sameColor && line.matchColor)
+      .map(line => line.matchColor)
+  )];
+
+  const rainbowBlastTier = uniqueColorBlastColors.length;
+  const rainbowBlastMultiplier =
+    rainbowBlastTier >= 4 ? 8 :
+    rainbowBlastTier === 3 ? 4 :
+    rainbowBlastTier === 2 ? 2 :
+    1;
+
+  return {
+    lines,
+    cells,
+    points,
+    colorMatches,
+    treasureCount,
+    uniqueColorBlastColors,
+    rainbowBlastTier,
+    rainbowBlastMultiplier
+  };
 }
 
 function getClearLinesFromBoard(b, touchedCells = null) {
@@ -1185,24 +1936,49 @@ function previewClearLines(lines) {
 }
 
 function notifyClear(info, treasureMultiplier = 1, actionValue = 0) {
-  const messages = [];
+  const multipliers = [];
 
-  if (info.lines.length >= 3) messages.push(`${info.lines.length} LINE MEGA BLAST`);
-  else if (info.lines.length === 2) messages.push("DOUBLE BLAST");
-  else messages.push("LINE BLAST");
+  const rainbowLabel = getRainbowBlastLabel(info.rainbowBlastTier || 0);
+  const uniqueColors = info.uniqueColorBlastColors || [];
 
-  if (info.colorMatches > 0) messages.push(`PERFECT COLOR x${getUnlockedColorCount()}`);
-  if (treasureMultiplier > 1) messages.push(`TREASURE x${treasureMultiplier}`);
-  if (comboLevel > 1) messages.push(`COMBO x${comboLevel}`);
-  if (actionValue >= 30 || info.points >= 30) messages.push("MASSIVE");
+  let main;
+  let toastClass = "";
+  let toastColor = "";
 
-  showToast(messages[0], messages.slice(1).join(" • "));
+  if ((info.rainbowBlastTier || 0) >= 2) {
+    main = rainbowLabel;
+    toastClass = "toast-rainbow-text";
+  } else if (info.colorMatches > 0) {
+    main = "COLOR BLAST";
+    toastClass = "toast-color-text";
+    toastColor = uniqueColors[0] || "";
+  } else if (info.lines.length >= 3) {
+    main = `${info.lines.length} LINE MEGA BLAST`;
+  } else if (info.lines.length === 2) {
+    main = "DOUBLE BLAST";
+  } else {
+    main = "LINE BLAST";
+  }
+
+  if (info.colorMatches > 0) multipliers.push(`COLOR x${getUnlockedColorCount()}`);
+  if (info.lines.length > 1) multipliers.push(`MULTI x${info.lines.length}`);
+  if ((info.rainbowBlastMultiplier || 1) > 1) multipliers.push(`RAINBOW x${info.rainbowBlastMultiplier}`);
+  if (treasureMultiplier > 1) multipliers.push(`TREASURE x${treasureMultiplier}`);
+  if (comboLevel > 1) multipliers.push(`COMBO x${comboLevel}`);
+
+  showToast(main, multipliers.join(" • "), { className: toastClass, color: toastColor });
 }
 
-function showToast(main, sub = "") {
+function showToast(main, sub = "", options = {}) {
   const layer = document.getElementById("toastLayer");
+  layer?.querySelectorAll(".toast").forEach(existing => existing.remove());
   const el = document.createElement("div");
-  el.className = "toast";
+  el.className = `toast ${options.className || ""}`.trim();
+
+  if (options.color) {
+    el.style.setProperty("--toast-action-color", options.color);
+  }
+
   el.innerHTML = `${main}${sub ? `<small>${sub}</small>` : ""}`;
   layer.appendChild(el);
   setTimeout(() => el.remove(), 1200);
@@ -1290,6 +2066,73 @@ function runBoardClearAnimation() {
     });
     renderBoard();
   }, 2475);
+}
+
+
+function getRainbowBlastLabel(tier) {
+  if (tier >= 4) return "SPECTRUM MANIA!";
+  if (tier === 3) return "TRIPLE RAINBOW";
+  if (tier === 2) return "RAINBOW BLAST";
+  if (tier === 1) return "COLOR BLAST";
+  return null;
+}
+
+function applyRainbowBlastEffect(clearInfo) {
+  const tier = clearInfo?.rainbowBlastTier || 0;
+  if (tier < 2) return;
+
+  if (tier >= 4) {
+    convertEntireBoardAndPiecesToRainbow();
+    return;
+  }
+
+  convertBoardCellsNearClearedCellsToRainbow(clearInfo.cells, tier === 3 ? 3 : 1);
+}
+
+function convertEntireBoardAndPiecesToRainbow() {
+  for (let y = 0; y < GRID_SIZE; y++) {
+    for (let x = 0; x < GRID_SIZE; x++) {
+      if (board[y][x]) board[y][x].rainbow = true;
+    }
+  }
+
+  for (const piece of pieces) {
+    if (!piece.used) piece.rainbow = true;
+  }
+}
+
+function convertBoardCellsNearClearedCellsToRainbow(clearedCellKeys, maxDepth) {
+  const visited = new Set();
+  const queue = [];
+
+  for (const key of clearedCellKeys) {
+    const [x, y] = key.split(",").map(Number);
+    queue.push({ x, y, depth: 0 });
+    visited.add(`${x},${y}`);
+  }
+
+  while (queue.length) {
+    const current = queue.shift();
+    if (current.depth >= maxDepth) continue;
+
+    const neighbors = [
+      [current.x + 1, current.y],
+      [current.x - 1, current.y],
+      [current.x, current.y + 1],
+      [current.x, current.y - 1]
+    ];
+
+    for (const [nx, ny] of neighbors) {
+      if (nx < 0 || ny < 0 || nx >= GRID_SIZE || ny >= GRID_SIZE) continue;
+
+      const nKey = `${nx},${ny}`;
+      if (visited.has(nKey)) continue;
+      visited.add(nKey);
+
+      if (board[ny][nx]) board[ny][nx].rainbow = true;
+      queue.push({ x: nx, y: ny, depth: current.depth + 1 });
+    }
+  }
 }
 
 function applyClearResult(clearInfo) {
@@ -5441,6 +6284,8 @@ function renderLevelSelect() {
 }
 
 function startAdventureLevel(levelId) {
+  clearItemSaveWarningState();
+  console.info("[Combo Items] Starting Adventure: item bar should be hidden.");
   clearAdventureResultState();
   const level = adventureLevels.find(l => l.id === levelId);
   if (!level) return;
@@ -5451,6 +6296,7 @@ function startAdventureLevel(levelId) {
   }
 
   currentGameMode = "adventure";
+  resetComboItems();
   setTimeout(updateGameNavButton, 0);
   document.body.classList.add("adventure-mode");
   currentAdventureLevel = level;
@@ -5464,12 +6310,14 @@ function startAdventureLevel(levelId) {
 
   pieces = [];
   score = 0;
+  resetScoreLog();
   comboLevel = 0;
   comboMeter = 0;
   missesSinceLine = 0;
   dragging = null;
   runStartedAt = Date.now();
 
+  updateResponsiveLayout();
   buildGrid();
   placeAdventureStartingBlocks(level);
   generatePieces();
@@ -6444,7 +7292,45 @@ function saveOptionsFromMenu() {
 }
 
 function applyOptionsToCss() {
-  document.documentElement.style.setProperty("--cube", `${options.cubeSize}px`);
+  updateResponsiveLayout();
+}
+
+
+function syncMobileGameNavPlacement() {
+  // V94: direct HTML layout. Do not move gameplay controls in JS.
+}
+
+function updateResponsiveLayout() {
+  syncMobileGameNavPlacement();
+  const root = document.documentElement;
+  const isGame = currentScreenName === "game" || document.getElementById("gameScreen")?.classList.contains("active");
+  const isMobile = window.matchMedia("(max-width: 760px), (max-height: 760px)").matches;
+
+  let cube = Number(options.cubeSize || 52);
+  let gap = 4;
+
+  if (isGame && isMobile) {
+    const vw = window.innerWidth || 360;
+    const vh = window.innerHeight || 640;
+
+    const headerReserve = Math.min(150, Math.max(92, vh * 0.18));
+    const comboReserve = currentGameMode === "adventure" ? 62 : 74;
+    const pieceReserve = Math.min(190, Math.max(132, vh * 0.25));
+    const verticalReserve = headerReserve + comboReserve + pieceReserve + 34;
+
+    const byWidth = Math.floor((vw - 20 - (GRID_SIZE + 1) * 2) / GRID_SIZE);
+    const byHeight = Math.floor((vh - verticalReserve - (GRID_SIZE + 1) * 2) / GRID_SIZE);
+
+    cube = Math.max(24, Math.min(44, byWidth, byHeight));
+    gap = cube <= 30 ? 2 : 3;
+  } else if (isMobile) {
+    cube = Math.max(34, Math.min(Number(options.cubeSize || 52), 44));
+    gap = 3;
+  }
+
+  root.style.setProperty("--cube", `${cube}px`);
+  root.style.setProperty("--gap", `${gap}px`);
+  root.style.setProperty("--effective-cube", `${cube}px`);
 }
 
 function haptic(pattern = 10) {
@@ -6500,3 +7386,22 @@ function stopMusic() {
     audio.music.onended = null;
   } catch {}
 }
+
+
+// V90 board-clear suppression for item clears
+try {
+  const __oldBoardEmptyCheck = window.checkBoardClearBonus;
+  if (typeof __oldBoardEmptyCheck === "function") {
+    window.checkBoardClearBonus = function(...args){
+      if (lastBoardClearSource === "item") {
+        const empty = (typeof boardIsEmpty === "function" && isBoardActuallyEmpty()) ||
+                      (typeof isBoardEmpty === "function" && isBoardEmpty());
+        if (empty) {
+          console.log("[Board Clear] Suppressed because board was cleared by item.");
+          return false;
+        }
+      }
+      return __oldBoardEmptyCheck.apply(this,args);
+    };
+  }
+} catch(e){}

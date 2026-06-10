@@ -205,9 +205,20 @@
     </section>
 
     <section id="gameScreen" class="screen">
-      <header class="game-header">
-        <button id="gameNavBtn" class="game-nav-btn">Main Menu</button>
+      <div id="gameTopLogoRow" class="game-top-logo-row">
         <img id="gameTitleLogo" class="game-title-logo" src="img/title.png" alt="Chromablock Blaster" />
+      </div>
+
+      <div id="gameControlsRow" class="game-controls-row">
+        <button id="gameNavBtn" class="game-nav-btn">Main Menu</button>
+
+        <div class="combo-meter">
+          <div id="comboMeterFill"></div>
+          <span id="comboMeterText">Combo Ready</span>
+          <span id="comboMultiplierText">x0</span>
+          <span id="adventureHintText" class="hidden"></span>
+        </div>
+
         <div class="scoreboard">
           <div>Score: <span id="score">0</span></div>
           <div>Combo: <span id="combo">0</span></div>
@@ -219,16 +230,9 @@
             <div>Objectives: <span id="adventureObjectives">0</span></div>
           </div>
         </div>
-      </header>
-
-      <div class="combo-meter-wrap">
-        <div class="combo-meter">
-          <div id="comboMeterFill"></div>
-          <span id="comboMeterText">Combo Ready</span>
-          <span id="comboMultiplierText">x0</span>
-          <span id="adventureHintText" class="hidden"></span>
-        </div>
       </div>
+
+      <div id="comboItemBar" class="combo-item-bar hidden"></div>
 
       <main class="game-layout">
         <div id="gridWrap">
@@ -238,7 +242,8 @@
         <div id="pieces" class="pieces"></div>
 
         <a class="patreon-link" href="https://www.patreon.com/bishiba" target="_blank" rel="noopener noreferrer" aria-label="Support on Patreon">
-          <img src="img/patreon.png" alt="Support on Patreon" onerror="this.style.display='none'; this.parentElement.textContent='Support on Patreon';" />
+          <img src="img/patreon.png" alt="Patreon" />
+          <span>Support development on Patreon</span>
         </a>
       </main>
 

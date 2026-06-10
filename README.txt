@@ -435,3 +435,221 @@ V65 change:
 - Restored all normal red return buttons by using v63 as the base.
 - Removed only the red return button inside the Endless game-over screen.
 - Added scoped CSS safeguard for #gameOverScreen only.
+
+V67 responsive update:
+- Added dynamic cube sizing for phone/small-height screens so the full 9x9 board remains visible.
+- Desktop keeps configured cube size; mobile computes cube size from viewport.
+- Mobile game layout moves pieces below the board and compacts header/combo bar.
+- Added orientation/resize handling for responsive recalculation.
+- Reduced mobile menu/card padding and prevented horizontal scrolling.
+- Leaderboard, stats, help, credits, level select and options now fit narrow screens and scroll vertically only.
+- Removed CSS border-radius clipping from cells/mini-cells to preserve square gem artwork.
+
+V68 rainbow blast update:
+- Color blast text now says COLOR BLAST instead of LINE BLAST when a single unique color line is cleared.
+- Multiple distinct color blasts in one move now trigger:
+  2 unique colors: RAINBOW BLAST, 2x score multiplier, adjacent remaining blocks become rainbow.
+  3 unique colors: TRIPLE RAINBOW, 4x score multiplier, remaining blocks within depth 3 become rainbow.
+  4+ unique colors: SPECTRUM MANIA!, 8x score multiplier, all remaining board blocks and available pieces become rainbow.
+- Multiple lines of the same color count as one unique color blast, as intended.
+
+V69 score logging update:
+- Added reusable scoring breakdown objects.
+- Console now logs every scoring event with formula: (base/color points + combo bonus) × treasure × rainbow = result.
+- Console includes unique color blast colors, rainbow reward tier, multipliers, previous score and new score.
+- Added recent on-screen score breakdown after scoring moves.
+- Added Score Log button and modal with recent scoring event history.
+- Score log resets at the start of each Endless/Adventure run.
+
+V70 score logging update:
+- Removed interactive score breakdown toast.
+- Removed Score Log button and modal.
+- Kept console scoring diagnostics.
+- Kept scoreHistory and scoreSourceTotals internally.
+- Persisted recent score diagnostics to localStorage for debugging.
+- Existing gameplay stats saving remains intact.
+
+V71 combo items update:
+- Added Endless-only combo item bar.
+- Combo x1 unlocks Pickaxe, x2 unlocks second Pickaxe, x3 unlocks 3x3 Bomb, x4 unlocks Reroll, x5 unlocks Cross Blast, x6 unlocks Rainbow Prism.
+- Items are one-use, fixed-slot, non-stacking.
+- Locked/used items are gray; unlocked items glow.
+- Items are drag-and-drop with board/piece ghost previews.
+- Reroll targets available pieces; other items target board cells.
+- Added basic item usage stats.
+
+V72 combo item debug/fix:
+- Fixed missing comboItemBar element in index.html.
+- Added console.info/debug logs when Endless starts, Adventure starts, item bar renders, combo reward checks run, items unlock, and items are used.
+- Item bar remains Endless-only.
+
+V73 combo item threshold update:
+- Shifted all Endless combo item unlock thresholds up by one.
+- x1: no item.
+- x2: Pickaxe.
+- x3: second Pickaxe.
+- x4: 3x3 Bomb.
+- x5: Reroll.
+- x6: Cross Blast.
+- x7: Rainbow Prism.
+
+V74 combo item re-unlock update:
+- Combo items remain one-use and non-stacking.
+- If an item is already available, reaching its threshold again does not create a duplicate.
+- If an item was consumed, reaching its combo threshold again restores/unlocks it.
+- Award debug logging now reflects this behavior.
+
+V75 scoring/color/toast update:
+- Scoring formula changed to: (9 per line + combo bonus) × color multiplier × multiline multiplier × treasure multiplier × rainbow multiplier.
+- Color multiplier and multiline multiplier are now outside the additive parentheses.
+- Console scoring logs now show the updated formula and multiplier breakdown.
+- Endless color unlocks now happen at score thresholds: 300, 1200, 2400, 4800, 9600, etc.
+- Action toast now prioritizes one main action message instead of stacking competing labels.
+- Color Blast toast text uses the popped color; multi-color/rainbow blasts use rainbow-gradient text.
+
+V76 item-save game-over update:
+- Endless game over is now delayed if the player has a usable combo item that can plausibly save the run.
+- Pickaxe, 3x3 Bomb, and Cross Blast prevent game over while there is any block on the board.
+- Reroll prevents game over while there is at least one unused available piece.
+- Rainbow Prism does not prevent game over by itself because it does not remove or reroll.
+- Added console.info diagnostics when game over is delayed by an available item.
+- Shows "ITEM AVAILABLE" toast instead of ending the game immediately.
+
+V77 dynamic combo item drops:
+- Replaced fixed combo-threshold unlock slots with a dynamic 12-slot Endless inventory.
+- Combo item drops begin at combo x2 and scale in chance with combo level, capped at 75%.
+- Eligible items depend on minimum combo:
+  x2+: Pickaxe, Undo placeholder, 3x3 Bomb.
+  x4+: Reroll, TNT radius 3, Cross Blast, Rainbow Prism radius 2.
+  x6+: Reroll All, Rocket radius 5, Diamond Prism radius 4.
+- Items can duplicate and can still drop at high combo if their minimum combo is met.
+- If inventory is full, drops are skipped with console diagnostics.
+- Added console group logs for every item drop roll.
+- Note: Undo is included in the drop table but is currently disabled until move snapshots are wired.
+
+V78 fix:
+- Fixed crash: triggerEndlessGameOverIfNoItemCanSave was referenced but missing.
+- Restored game-over guard helpers for the dynamic combo inventory system.
+- Game over is still delayed when usable save-items exist: reroll/rerollAll, pickaxe, bomb3x3, cross, TNT, rocket.
+- Prism items still do not prevent game over by themselves.
+
+V79 inventory layout update:
+- Inventory now displays as a single centered row.
+- Empty slots are no longer shown.
+- First item appears centered.
+- Additional items appear centered next to each other.
+- Spacing automatically decreases as more items are carried.
+- Added x/12 capacity indicator in the top-right of the inventory bar.
+
+V80 item/drop update:
+- Combo item drops are now guaranteed on every Endless combo from x2 onward, if inventory has room.
+- Combo x1 still gives no item.
+- Higher combos increase the weighted likelihood of stronger item tiers, but any eligible item can still drop at high combo.
+- Removed RARE/EPIC text labels from item icons.
+- Removed the red inventory border and replaced it with a neutral subtle border.
+- Added usable Undo: drag/drop the Undo item anywhere while in game to restore the board, pieces, score, combo, meter, and score log to before the last placed piece.
+
+V81 item/border update:
+- Removed Undo item and undo snapshot system.
+- Rebalanced early drop weights between Pickaxe and 3x3 Bomb.
+- Changed TNT to radius 2.
+- Removed center-screen ITEM AVAILABLE toast to avoid stacked messages.
+- If game over would occur but an item can save the run, the board border turns red and inventory border turns green.
+- Borders revert to neutral after using an item, making a valid move, starting a new mode, or actual game over.
+- showToast now removes previous active center toasts before showing a new one, reducing overlapping center messages.
+
+V82 spawn/inset border update:
+- Spawn-area preview pieces now render at 0.5 visual scale.
+- Dragged pieces still appear at normal drag size.
+- Spawn tray has stable min/max height to prevent layout changes from long 4x1 pieces.
+- Warning borders now draw inward using inset box-shadow instead of expanding outward.
+- Spawn area neutral/warning border styling now matches the grid/inventory style more closely.
+
+V83 shared panel frame update:
+- Grid, spawn area, and inventory now share the same window/frame style.
+- All three use pseudo-element inset frames instead of real borders.
+- Warning state no longer changes border width, box dimensions, or element position.
+- Board/spawn warning frames turn red; inventory warning frame turns green.
+- Older border/box-shadow rules are explicitly neutralized.
+
+V84 mobile layout update:
+- Patreon button is visible on phones as normal content below the lowest displayed content.
+- Removed phone-only fixed-bottom Patreon behavior that caused it to be hidden/overlap.
+- Mobile gameplay now stacks grid first and spawn area below the grid.
+- PC layout remains unchanged with spawn area on the left.
+
+V85 reroll update:
+- Reroll must be dropped directly onto one visible available piece.
+- Reroll All must also be dropped onto the spawn area/one visible available piece.
+- Reroll All now generates a completely fresh set of 3 pieces instead of rerolling existing pieces individually.
+- Reroll All preview highlights all current available pieces when hovering over a valid piece target.
+
+V86: Patreon text/logo combined horizontally, transparent container on mobile.
+
+V87 mobile/gameplay update:
+- Inventory limit changed from 12 to 7.
+- Game Patreon link now includes logo + text in the same element.
+- Global Patreon link is hidden during gameplay to prevent top-left text.
+- Mobile gameplay hides the title logo.
+- Mobile moves Main Menu/Level Select button beside the combo meter to shorten the combo bar.
+- Scoreboard gets the same pseudo-frame window style as other gameplay windows.
+- Patreon remains transparent and centered below the lowest gameplay content.
+
+V88 mobile gameplay cleanup:
+- Rebuilt mobile gameplay DOM arrangement with JS instead of relying on CSS-only cross-parent positioning.
+- Mobile row 1: Main Menu/Level Select button left, combo meter right.
+- Mobile row 2: score window left, inventory window right.
+- Mobile title logo/header hidden during gameplay.
+- Grid remains above spawn tray.
+- Patreon remains below spawn tray as a transparent combined logo+text link.
+
+V89 item drop balance:
+- Items now drop only every 3 combo levels: x3, x6, x9, x12, etc.
+- Drops remain guaranteed on those combo levels if inventory has room.
+- Pickaxe is now more common than 3x3 Bomb.
+- Early weights changed: Pickaxe 52, Bomb 24.
+- Added console note showing the item weighting table on drop rolls.
+
+V91 gameplay layout:
+- Reworked gameplay layout to a simple structure.
+- Inventory is always a separate row above the grid area.
+- Top controls row contains Main Menu/Level Select button, combo meter, and stats.
+- All top controls are aligned to the same height.
+- PC displays the title logo above the controls row.
+- Mobile hides the title logo to save space.
+- PC keeps spawn area left of grid; mobile keeps spawn area below grid.
+
+V92 direct gameplay layout:
+- Rebuilt the gameScreen HTML directly instead of moving controls with JS.
+- gameControlsRow now natively contains Main Menu/Level Select, combo meter, and stats side-by-side.
+- Removed DOM relocation behavior from syncMobileGameNavPlacement.
+- Inventory remains a separate row above the grid.
+- PC shows title logo above controls.
+- Mobile hides title logo and uses compact controls.
+- Fixed combo text overlap by explicitly anchoring combo text and multiplier inside the meter.
+
+V93 fix:
+- Fixed crash after using item: boardIsEmpty was referenced, but the game uses isBoardEmpty.
+- Added safe isBoardActuallyEmpty helper.
+- Item-caused board clears remain suppressed and now log instead of awarding board-clear rewards.
+
+V94 visibility/layout fix:
+- Non-active screens are now forcibly hidden so the game board cannot appear on menus or other screens.
+- Desktop game layout now centers spawn+grid together and puts Patreon below them.
+- Mobile controls row remains button/combo/stats side-by-side with compact sizing.
+- Mobile keeps inventory above grid and spawn below grid.
+- Global Patreon hidden during gameplay; in-game Patreon shown below gameplay content.
+
+V95 mobile investigation/layout final override:
+- Found many old !important rules still targeting gameControlsRow, game-layout, pieces, gridWrap, combo-meter-wrap and game-header.
+- Added a final width-only mobile override scoped to #gameScreen.active.
+- Avoided max-height mobile detection so desktop layouts with short height are not affected.
+- Forces one mobile controls row: button | combo | stats.
+- Forces inventory as separate row above board.
+- Forces board above spawn tray on phones.
+
+V96 desktop spawn height fix:
+- Cause: older spawn tray CSS capped height with max-height and overflow hidden, so desktop height:100% had no stable parent height to resolve against.
+- Desktop spawn tray now explicitly matches the computed 9x9 board height.
+- Desktop max-height cap is removed and overflow is visible.
+- Mobile keeps compact spawn tray below board.
