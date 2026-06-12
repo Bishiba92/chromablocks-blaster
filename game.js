@@ -240,7 +240,7 @@ let scoreHistory = [];
 let scoreSourceTotals = {};
 let scoreTurnNumber = 0;
 
-const COMBO_INVENTORY_LIMIT = 7;
+const COMBO_INVENTORY_LIMIT = 3;
 
 const COMBO_ITEM_DEFS = [
   { type: "pickaxe", minCombo: 2, weight: 52, icon: "⛏", name: "Pickaxe", desc: "Remove a single block." },
